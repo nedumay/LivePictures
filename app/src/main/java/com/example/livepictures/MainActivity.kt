@@ -15,27 +15,23 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.paint
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -74,84 +70,124 @@ fun MainScreen(modifier: Modifier) {
         modifier = modifier
             .background(color = Color.Black)
             .fillMaxSize()
-            .padding(16.dp)
+            .padding(16.dp),
+        verticalArrangement = Arrangement.Center
     ) {
-        Row(
-            modifier = modifier
-                .fillMaxWidth()
-                .height(45.dp)
-                .weight(1f)
-        ) {
-            Row(modifier = Modifier.weight(1f)) {
-                IconButton(onClick = { }) {
-                    Icon(
-                        imageVector = ImageVector.vectorResource(id = R.drawable.right_unactive),
-                        contentDescription = " ",
-                        tint = Color.Gray // Условия для изменения цвета
-                    )
-                }
-                IconButton(onClick = { }) {
-                    Icon(
-                        imageVector = ImageVector.vectorResource(id = R.drawable.left_unactive),
-                        contentDescription = " ",
-                        tint = Color.Gray // Условия для изменения цвета
-                    )
-                }
+        TopRow(modifier.weight(1f))
+        CanvasTest(modifier = Modifier.weight(10f))
+        BottomRow(modifier.weight(1f))
+    }
+}
+
+@Composable
+private fun BottomRow(modifier: Modifier) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(45.dp),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        var selectedIcon by rememberSaveable { mutableStateOf(-1) }
+        IconButton(onClick = { selectedIcon = 0 }) {
+            Icon(
+                imageVector = ImageVector.vectorResource(id = R.drawable.pencel),
+                contentDescription = " ",
+                tint = if (selectedIcon == 0) com.example.livepictures.ui.theme.Green else Color.White //Исправить цвета
+            )
+        }
+        IconButton(onClick = { selectedIcon = 1 }) {
+            Icon(
+                imageVector = ImageVector.vectorResource(id = R.drawable.brush),
+                contentDescription = " ",
+                tint = if (selectedIcon == 1) com.example.livepictures.ui.theme.Green else Color.White //Исправить цвета
+            )
+        }
+        IconButton(onClick = { selectedIcon = 2 }) {
+            Icon(
+                imageVector = ImageVector.vectorResource(id = R.drawable.erase),
+                contentDescription = " ",
+                tint = if (selectedIcon == 2) com.example.livepictures.ui.theme.Green else Color.White //Исправить цвета
+            )
+        }
+        IconButton(onClick = { selectedIcon = 3 }) {
+            Icon(
+                imageVector = ImageVector.vectorResource(id = R.drawable.instruments),
+                contentDescription = " ",
+                tint = if (selectedIcon == 3) com.example.livepictures.ui.theme.Green else Color.White //Исправить цвета
+            )
+        }
+        IconButton(onClick = { selectedIcon = 4 }) {
+            Icon(
+                imageVector = ImageVector.vectorResource(id = R.drawable.ellipse),
+                contentDescription = " ",
+                tint = if (selectedIcon == 4) com.example.livepictures.ui.theme.Green else Color.White //Исправть, только окружность
+            )
+        }
+    }
+}
+
+@Composable
+private fun TopRow(modifier: Modifier) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(45.dp)
+    ) {
+        Row(modifier = Modifier.weight(1f)) {
+            IconButton(onClick = { }) {
+                Icon(
+                    imageVector = ImageVector.vectorResource(id = R.drawable.right_unactive),
+                    contentDescription = " ",
+                    tint = Color.Gray // Условия для изменения цвета
+                )
             }
-            Row(modifier = Modifier
-                .weight(2f),
-                horizontalArrangement = Arrangement.Center
-            ){
-                IconButton(onClick = { }) {
-                    Icon(
-                        imageVector = ImageVector.vectorResource(id = R.drawable.trash),
-                        contentDescription = " ",
-                        tint = Color.White
-                    )
-                }
-                IconButton(onClick = { }) {
-                    Icon(
-                        imageVector = ImageVector.vectorResource(id = R.drawable.file_plus),
-                        contentDescription = " ",
-                        tint = Color.White
-                    )
-                }
-                IconButton(onClick = { }) {
-                    Icon(
-                        imageVector = ImageVector.vectorResource(id = R.drawable.layers),
-                        contentDescription = " ",
-                        tint = Color.White
-                    )
-                }
-            }
-            Row(modifier = Modifier.weight(1f)){
-                IconButton(onClick = { }) {
-                    Icon(
-                        imageVector = ImageVector.vectorResource(id = R.drawable.stop_unactive),
-                        contentDescription = " ",
-                        tint = Color.Gray // Условия для изменения цвета
-                    )
-                }
-                IconButton(onClick = { }) {
-                    Icon(
-                        imageVector = ImageVector.vectorResource(id = R.drawable.play_unactive),
-                        contentDescription = " ",
-                        tint = Color.Gray // Условия для изменения цвета
-                    )
-                }
+            IconButton(onClick = { }) {
+                Icon(
+                    imageVector = ImageVector.vectorResource(id = R.drawable.left_unactive),
+                    contentDescription = " ",
+                    tint = Color.Gray // Условия для изменения цвета
+                )
             }
         }
-        CanvasTest(modifier = Modifier.weight(10f))
         Row(
-            modifier = modifier
-                .fillMaxWidth()
-                .height(45.dp)
-                .weight(1f)
+            modifier = Modifier
+                .weight(2f),
+            horizontalArrangement = Arrangement.Center
         ) {
-            val selectedColor = remember { mutableStateOf(Color.Black) }
+            IconButton(onClick = { }) {
+                Icon(
+                    imageVector = ImageVector.vectorResource(id = R.drawable.trash),
+                    contentDescription = " ",
+                    tint = Color.White
+                )
+            }
+            IconButton(onClick = { }) {
+                Icon(
+                    imageVector = ImageVector.vectorResource(id = R.drawable.file_plus),
+                    contentDescription = " ",
+                    tint = Color.White
+                )
+            }
+            IconButton(onClick = { }) {
+                Icon(
+                    imageVector = ImageVector.vectorResource(id = R.drawable.layers),
+                    contentDescription = " ",
+                    tint = Color.White
+                )
+            }
+        }
+        Row(modifier = Modifier.weight(1f)) {
             IconButton(onClick = { }) {
                 Icon(
                     imageVector = ImageVector.vectorResource(id = R.drawable.stop_unactive),
+                    contentDescription = " ",
+                    tint = Color.Gray // Условия для изменения цвета
+                )
+            }
+            IconButton(onClick = { }) {
+                Icon(
+                    imageVector = ImageVector.vectorResource(id = R.drawable.play_unactive),
                     contentDescription = " ",
                     tint = Color.Gray // Условия для изменения цвета
                 )
