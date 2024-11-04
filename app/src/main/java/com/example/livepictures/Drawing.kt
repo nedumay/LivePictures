@@ -2,6 +2,8 @@ package com.example.livepictures
 
 import android.graphics.Bitmap
 import android.graphics.Paint
+import android.graphics.PorterDuff
+import android.graphics.PorterDuffXfermode
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Canvas
@@ -93,6 +95,8 @@ fun Drawing(modifier: Modifier) {
 
     var canvasHeight:Int = 0
 
+    var fadeEffectEnabled by remember { mutableStateOf(false) }
+
     val canvasText = remember { StringBuilder() }
     val paint = remember {
         Paint().apply {
@@ -183,20 +187,24 @@ fun Drawing(modifier: Modifier) {
                 motionEvent = MotionEvent.Idle
             },
             addFrame = {
-                Toast.makeText(context, "AddFrame: ${currentFrameIndex}", Toast.LENGTH_SHORT).show()
+
                 currentBitmap?.let { bitmap ->
                     frames.add(bitmap)
                     currentFrameIndex = frames.size - 1
                     currentBitmap = null
 
+                    fadeEffectEnabled = true
+                    Toast.makeText(context, "AddFrame: ${currentFrameIndex}", Toast.LENGTH_SHORT).show()
                 }
             },
             deleteFrame = {
-                Toast.makeText(context, "DeleteFrame: ${currentFrameIndex} CurrentBitmap: ${currentBitmap}", Toast.LENGTH_SHORT).show()
-                if(currentFrameIndex > 0) {
+                if(frames.isNotEmpty() && currentFrameIndex >= 0) {
                     frames.removeAt(currentFrameIndex)
-                    currentFrameIndex--
+                    currentFrameIndex = if (currentFrameIndex > 0) currentFrameIndex - 1 else 0
                     currentBitmap = frames.getOrNull(currentFrameIndex)
+                    Toast.makeText(context, "DeleteFrame: ${currentFrameIndex} CurrentBitmap: ${currentBitmap}", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(context, "No Frame to Delete", Toast.LENGTH_SHORT).show()
                 }
             },
             onStop = {
@@ -216,6 +224,15 @@ fun Drawing(modifier: Modifier) {
                 canvasHeight = it.height
             }
         ) {
+            if (fadeEffectEnabled) {
+                drawRect(
+                    color = Color.White.copy(alpha = 0.1f), // Настройка прозрачности затухания
+                    size = size
+                )
+                // Сбрасываем эффект после отрисовки
+                fadeEffectEnabled = false
+            }
+
             when (motionEvent) {
                 MotionEvent.Down -> {
                     if (drawMode != DrawMode.Touch) {
@@ -397,19 +414,16 @@ fun generateCurrentBitmap(paths: List<Pair<Path, PathProperties>>, canvasWidth: 
             androidPath.addPath(this)
         }
         val paint = Paint().apply {
-            color = property.color.toArgb()
-            strokeWidth = property.strokeWidth
-            when (property.strokeCap) {
-                StrokeCap.Butt -> strokeCap = Paint.Cap.BUTT
-                StrokeCap.Round -> strokeCap = Paint.Cap.ROUND
-                StrokeCap.Square -> strokeCap = Paint.Cap.SQUARE
+            if(property.eraseMode) {
+                xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR)
+            } else {
+                color = property.color.toArgb()
+                strokeWidth = property.strokeWidth
+                style = Paint.Style.STROKE // Replace Stroke with Paint.Style.STROKE
+                //strokeCap = property.strokeCap // Add this line to set the stroke cap
+                //strokeJoin = property.strokeJoin // Add this line to set the stroke join
+                isAntiAlias = true
             }
-            when (property.strokeJoin) {
-                StrokeJoin.Miter -> strokeJoin = Paint.Join.MITER
-                StrokeJoin.Round -> strokeJoin = Paint.Join.ROUND
-                StrokeJoin.Bevel -> strokeJoin = Paint.Join.BEVEL
-            }
-            isAntiAlias = true
         }
         canvas.drawPath(path.asAndroidPath(), paint)
     }
