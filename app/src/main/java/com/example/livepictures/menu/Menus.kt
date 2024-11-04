@@ -1,9 +1,7 @@
 package com.example.livepictures.menu
 
-import android.widget.Toast
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -31,7 +29,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
@@ -45,11 +42,9 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -59,6 +54,8 @@ import com.example.livepictures.model.PathProperties
 import com.example.livepictures.selectColors.ColorSlider
 import com.example.livepictures.selectColors.ColorWheel
 import com.example.livepictures.ui.theme.Blue
+import com.example.livepictures.ui.theme.Gray
+import com.example.livepictures.ui.theme.White
 import kotlin.math.roundToInt
 
 @Composable
@@ -71,7 +68,8 @@ fun DrawingPropertiesMenuApp(
     deleteFrame: () -> Unit,
     addFrame: () -> Unit,
     onStop: () -> Unit,
-    onPlay: () -> Unit
+    onPlay: () -> Unit,
+    uiVisibility: Boolean
 
 ){
     Row(
@@ -79,55 +77,59 @@ fun DrawingPropertiesMenuApp(
             .fillMaxWidth()
             .height(45.dp)
     ) {
-        Row(modifier = Modifier.weight(1f)) {
-            IconButton(onClick = {
-                onUndo()
-            }) {
-                Icon(
-                    imageVector = ImageVector.vectorResource(id = R.drawable.right_unactive),
-                    contentDescription = " ",
-                    tint = Color.White // Условия для изменения цвета
-                )
-            }
-            IconButton(onClick = {
-                onRedo()
-            }) {
-                Icon(
-                    imageVector = ImageVector.vectorResource(id = R.drawable.left_unactive),
-                    contentDescription = " ",
-                    tint = Color.White // Условия для изменения цвета
-                )
+        if(uiVisibility) {
+            Row(modifier = Modifier.weight(1f)) {
+                IconButton(onClick = {
+                    onUndo()
+                }) {
+                    Icon(
+                        imageVector = ImageVector.vectorResource(id = R.drawable.right_unactive),
+                        contentDescription = " ",
+                        tint = Color.White // Условия для изменения цвета
+                    )
+                }
+                IconButton(onClick = {
+                    onRedo()
+                }) {
+                    Icon(
+                        imageVector = ImageVector.vectorResource(id = R.drawable.left_unactive),
+                        contentDescription = " ",
+                        tint = Color.White // Условия для изменения цвета
+                    )
+                }
             }
         }
-        Row(
-            modifier = Modifier
-                .weight(2f),
-            horizontalArrangement = Arrangement.Center
-        ) {
-            IconButton(onClick = {
+        if(uiVisibility) {
+            Row(
+                modifier = Modifier
+                    .weight(2f),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                IconButton(onClick = {
                     deleteFrame()
-            }) {
-                Icon(
-                    imageVector = ImageVector.vectorResource(id = R.drawable.trash),
-                    contentDescription = " ",
-                    tint = Color.White
-                )
-            }
-            IconButton(onClick = {
-                addFrame()
-            }) {
-                Icon(
-                    imageVector = ImageVector.vectorResource(id = R.drawable.file_plus),
-                    contentDescription = " ",
-                    tint = Color.White
-                )
-            }
-            IconButton(onClick = { }) {
-                Icon(
-                    imageVector = ImageVector.vectorResource(id = R.drawable.layers),
-                    contentDescription = " ",
-                    tint = Color.White
-                )
+                }) {
+                    Icon(
+                        imageVector = ImageVector.vectorResource(id = R.drawable.trash),
+                        contentDescription = " ",
+                        tint = Color.White
+                    )
+                }
+                IconButton(onClick = {
+                    addFrame()
+                }) {
+                    Icon(
+                        imageVector = ImageVector.vectorResource(id = R.drawable.file_plus),
+                        contentDescription = " ",
+                        tint = Color.White
+                    )
+                }
+                IconButton(onClick = { }) {
+                    Icon(
+                        imageVector = ImageVector.vectorResource(id = R.drawable.layers),
+                        contentDescription = " ",
+                        tint = Color.White
+                    )
+                }
             }
         }
         Row(modifier = Modifier.weight(1f)) {
@@ -137,7 +139,7 @@ fun DrawingPropertiesMenuApp(
                 Icon(
                     imageVector = ImageVector.vectorResource(id = R.drawable.stop_unactive),
                     contentDescription = " ",
-                    tint = Color.White // Условия для изменения цвета
+                    tint = if (uiVisibility) Gray else Color.White // Условия для изменения цвета
                 )
             }
             IconButton(onClick = {
@@ -146,7 +148,7 @@ fun DrawingPropertiesMenuApp(
                 Icon(
                     imageVector = ImageVector.vectorResource(id = R.drawable.play_unactive),
                     contentDescription = " ",
-                    tint = Color.White // Условия для изменения цвета
+                    tint = if (uiVisibility) White else Color.Gray // Условия для изменения цвета
                 )
             }
         }
@@ -159,7 +161,8 @@ fun DrawingPropertiesMenuBottom(
     pathProperties: PathProperties,
     drawMode: DrawMode,
     onPathPropertiesChange: (PathProperties) -> Unit,
-    onDrawModeChanged: (DrawMode) -> Unit
+    onDrawModeChanged: (DrawMode) -> Unit,
+    uiVisibility: Boolean
 ){
     val properties by rememberUpdatedState(newValue = pathProperties)
 
@@ -172,71 +175,73 @@ fun DrawingPropertiesMenuBottom(
             .fillMaxWidth()
             .height(45.dp),
         horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        IconButton(onClick = {
-            currentDrawMode = if (currentDrawMode == DrawMode.Touch) {
-                DrawMode.Draw
-            } else {
-                DrawMode.Touch
+        if(uiVisibility) {
+            IconButton(onClick = {
+                currentDrawMode = if (currentDrawMode == DrawMode.Touch) {
+                    DrawMode.Draw
+                } else {
+                    DrawMode.Touch
+                }
+                onDrawModeChanged(currentDrawMode)
+            }) {
+                Icon(
+                    imageVector = ImageVector.vectorResource(id = R.drawable.pencel),
+                    contentDescription = " ",
+                    tint = if (currentDrawMode == DrawMode.Draw) com.example.livepictures.ui.theme.Green else Color.White
+                )
             }
-            onDrawModeChanged(currentDrawMode)
-        }) {
-            Icon(
-                imageVector = ImageVector.vectorResource(id = R.drawable.pencel),
-                contentDescription = " ",
-                tint = if (currentDrawMode == DrawMode.Draw) com.example.livepictures.ui.theme.Green else Color.White
-            )
-        }
-        IconButton(onClick = {
-            currentDrawMode = if (currentDrawMode == DrawMode.Brush) {
-                DrawMode.Draw
-            } else {
-                DrawMode.Brush
+            IconButton(onClick = {
+                currentDrawMode = if (currentDrawMode == DrawMode.Brush) {
+                    DrawMode.Draw
+                } else {
+                    DrawMode.Brush
+                }
+                onDrawModeChanged(currentDrawMode)
+            }) {
+                Icon(
+                    imageVector = ImageVector.vectorResource(id = R.drawable.brush),
+                    contentDescription = " ",
+                    tint = if (currentDrawMode == DrawMode.Brush) com.example.livepictures.ui.theme.Green else Color.White
+                )
             }
-            onDrawModeChanged(currentDrawMode)
-        }) {
-            Icon(
-                imageVector = ImageVector.vectorResource(id = R.drawable.brush),
-                contentDescription = " ",
-                tint = if (currentDrawMode == DrawMode.Brush) com.example.livepictures.ui.theme.Green else Color.White
-            )
-        }
-        IconButton(onClick = {
-            currentDrawMode = if (currentDrawMode == DrawMode.Erase) {
-                DrawMode.Draw
-            } else {
-                DrawMode.Erase
+            IconButton(onClick = {
+                currentDrawMode = if (currentDrawMode == DrawMode.Erase) {
+                    DrawMode.Draw
+                } else {
+                    DrawMode.Erase
+                }
+                onDrawModeChanged(currentDrawMode)
+            }) {
+                Icon(
+                    imageVector = ImageVector.vectorResource(id = R.drawable.erase),
+                    contentDescription = " ",
+                    tint = if (currentDrawMode == DrawMode.Erase) com.example.livepictures.ui.theme.Green else Color.White
+                )
             }
-            onDrawModeChanged(currentDrawMode)
-        }) {
-            Icon(
-                imageVector = ImageVector.vectorResource(id = R.drawable.erase),
-                contentDescription = " ",
-                tint = if (currentDrawMode == DrawMode.Erase) com.example.livepictures.ui.theme.Green else Color.White
-            )
-        }
-        IconButton(onClick = {
+            IconButton(onClick = {
 
-        }) {
-            Icon(
-                imageVector = ImageVector.vectorResource(id = R.drawable.instruments),
-                contentDescription = " ",
-                //tint = if (selectedIcon == 3) com.example.livepictures.ui.theme.Green else Color.White //Исправить цвета
-            )
-        }
-        IconButton(onClick = { showColorDialog = !showColorDialog }) {
-            ColorWheel(modifier = Modifier.size(24.dp))
-        }
-        IconButton(onClick = {
-            showPropertiesDialog = !showPropertiesDialog
-        }) {
-            Icon(
-                imageVector = ImageVector.vectorResource(id = R.drawable.ellipse),
-                contentDescription = " ",
-                tint = properties.color,
-                modifier = Modifier
-            )
+            }) {
+                Icon(
+                    imageVector = ImageVector.vectorResource(id = R.drawable.instruments),
+                    contentDescription = " ",
+                    //tint = if (selectedIcon == 3) com.example.livepictures.ui.theme.Green else Color.White //Исправить цвета
+                )
+            }
+            IconButton(onClick = { showColorDialog = !showColorDialog }) {
+                ColorWheel(modifier = Modifier.size(24.dp))
+            }
+            IconButton(onClick = {
+                showPropertiesDialog = !showPropertiesDialog
+            }) {
+                Icon(
+                    imageVector = ImageVector.vectorResource(id = R.drawable.ellipse),
+                    contentDescription = " ",
+                    tint = properties.color,
+                    modifier = Modifier
+                )
+            }
         }
     }
 

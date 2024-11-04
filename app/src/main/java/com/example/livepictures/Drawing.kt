@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import android.graphics.Paint
 import android.graphics.PorterDuff
 import android.graphics.PorterDuffXfermode
+import android.view.View
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Canvas
@@ -97,6 +98,8 @@ fun Drawing(modifier: Modifier) {
 
     var fadeEffectEnabled by remember { mutableStateOf(false) }
 
+    var uiVisibility by remember { mutableStateOf(true) }
+
     val canvasText = remember { StringBuilder() }
     val paint = remember {
         Paint().apply {
@@ -163,19 +166,15 @@ fun Drawing(modifier: Modifier) {
                 .padding(4.dp),
             onUndo = {
                 if (paths.isNotEmpty()) {
-
                     val lastItem = paths.last()
                     val lastPath = lastItem.first
                     val lastPathProperty = lastItem.second
                     paths.remove(lastItem)
-
                     pathsUndone.add(Pair(lastPath, lastPathProperty))
-
                 }
             },
             onRedo = {
                 if (pathsUndone.isNotEmpty()) {
-
                     val lastPath = pathsUndone.last().first
                     val lastPathProperty = pathsUndone.last().second
                     pathsUndone.removeLast()
@@ -195,6 +194,14 @@ fun Drawing(modifier: Modifier) {
 
                     fadeEffectEnabled = true
                     Toast.makeText(context, "AddFrame: ${currentFrameIndex}", Toast.LENGTH_SHORT).show()
+
+                    if (paths.isNotEmpty()) {
+                       val lastItem = paths.last()
+                       val lastPath = lastItem.first
+                       val lastPathProperty = lastItem.second
+                       paths.remove(lastItem)
+                       pathsUndone.add(Pair(lastPath, lastPathProperty))
+                   }
                 }
             },
             deleteFrame = {
@@ -209,14 +216,17 @@ fun Drawing(modifier: Modifier) {
             },
             onStop = {
                 isPlaying = false
+                uiVisibility = true
                 Toast.makeText(context, "Stop: ${isPlaying}", Toast.LENGTH_SHORT).show()
             },
             onPlay = {
                 if (frames.isNotEmpty() && !isPlaying) {
                     isPlaying = true
+                    uiVisibility = false
                     Toast.makeText(context, "Play: ${isPlaying}", Toast.LENGTH_SHORT).show()
                 }
-            }
+            },
+            uiVisibility = uiVisibility
         )
         Canvas(modifier = drawModifier
             .onSizeChanged {
@@ -384,7 +394,8 @@ fun Drawing(modifier: Modifier) {
                     context, "pathProperty: ${currentPathProperty.hashCode()}, " +
                             "Erase Mode: ${currentPathProperty.eraseMode}", Toast.LENGTH_SHORT
                 ).show()
-            }
+            },
+            uiVisibility = uiVisibility
         )
     }
 }
@@ -417,11 +428,10 @@ fun generateCurrentBitmap(paths: List<Pair<Path, PathProperties>>, canvasWidth: 
             if(property.eraseMode) {
                 xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR)
             } else {
+                xfermode = PorterDuffXfermode(PorterDuff.Mode.ADD)
                 color = property.color.toArgb()
                 strokeWidth = property.strokeWidth
                 style = Paint.Style.STROKE // Replace Stroke with Paint.Style.STROKE
-                //strokeCap = property.strokeCap // Add this line to set the stroke cap
-                //strokeJoin = property.strokeJoin // Add this line to set the stroke join
                 isAntiAlias = true
             }
         }
