@@ -1,5 +1,6 @@
 package com.example.livepictures.menu
 
+import android.widget.Toast
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -44,6 +45,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
@@ -65,7 +67,12 @@ fun DrawingPropertiesMenuApp(
     onUndo: () -> Unit,
     onRedo: () -> Unit,
     pathProperties: PathProperties,
-    onPathPropertiesChange: (PathProperties) -> Unit
+    onPathPropertiesChange: (PathProperties) -> Unit,
+    deleteFrame: () -> Unit,
+    addFrame: () -> Unit,
+    onStop: () -> Unit,
+    onPlay: () -> Unit
+
 ){
     Row(
         modifier = modifier
@@ -79,7 +86,7 @@ fun DrawingPropertiesMenuApp(
                 Icon(
                     imageVector = ImageVector.vectorResource(id = R.drawable.right_unactive),
                     contentDescription = " ",
-                    tint = Color.Gray // Условия для изменения цвета
+                    tint = Color.White // Условия для изменения цвета
                 )
             }
             IconButton(onClick = {
@@ -88,7 +95,7 @@ fun DrawingPropertiesMenuApp(
                 Icon(
                     imageVector = ImageVector.vectorResource(id = R.drawable.left_unactive),
                     contentDescription = " ",
-                    tint = Color.Gray // Условия для изменения цвета
+                    tint = Color.White // Условия для изменения цвета
                 )
             }
         }
@@ -97,14 +104,18 @@ fun DrawingPropertiesMenuApp(
                 .weight(2f),
             horizontalArrangement = Arrangement.Center
         ) {
-            IconButton(onClick = { }) {
+            IconButton(onClick = {
+                    deleteFrame()
+            }) {
                 Icon(
                     imageVector = ImageVector.vectorResource(id = R.drawable.trash),
                     contentDescription = " ",
                     tint = Color.White
                 )
             }
-            IconButton(onClick = { }) {
+            IconButton(onClick = {
+                addFrame()
+            }) {
                 Icon(
                     imageVector = ImageVector.vectorResource(id = R.drawable.file_plus),
                     contentDescription = " ",
@@ -120,18 +131,22 @@ fun DrawingPropertiesMenuApp(
             }
         }
         Row(modifier = Modifier.weight(1f)) {
-            IconButton(onClick = { }) {
+            IconButton(onClick = {
+                onStop()
+            }) {
                 Icon(
                     imageVector = ImageVector.vectorResource(id = R.drawable.stop_unactive),
                     contentDescription = " ",
-                    tint = Color.Gray // Условия для изменения цвета
+                    tint = Color.White // Условия для изменения цвета
                 )
             }
-            IconButton(onClick = { }) {
+            IconButton(onClick = {
+                onPlay()
+            }) {
                 Icon(
                     imageVector = ImageVector.vectorResource(id = R.drawable.play_unactive),
                     contentDescription = " ",
-                    tint = Color.Gray // Условия для изменения цвета
+                    tint = Color.White // Условия для изменения цвета
                 )
             }
         }

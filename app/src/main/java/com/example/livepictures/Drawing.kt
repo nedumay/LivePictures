@@ -1,5 +1,6 @@
 package com.example.livepictures
 
+import android.graphics.Bitmap
 import android.graphics.Paint
 import android.widget.Toast
 import androidx.annotation.RequiresApi
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -24,6 +26,10 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.asAndroidPath
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.nativeCanvas
@@ -32,6 +38,7 @@ import androidx.compose.ui.input.pointer.consumeDownChange
 import androidx.compose.ui.input.pointer.consumePositionChange
 import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -42,6 +49,11 @@ import com.example.livepictures.mode.DrawMode
 import com.example.livepictures.mode.MotionEvent
 import com.example.livepictures.mode.dragMotionEvent
 import com.example.livepictures.model.PathProperties
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 
 @RequiresApi(35)
@@ -63,12 +75,23 @@ fun Drawing(modifier: Modifier) {
 
     //Режим рисования, режим стирания или режим касания для
     var drawMode by remember { mutableStateOf(DrawMode.Draw) }
-
+    //Для перемещения
     var motionEvent by remember { mutableStateOf(MotionEvent.Idle) }
-
+    //Отслеживание текущей позиции касания
     var currentPath by remember { mutableStateOf(Path()) }
-
     var currentPathProperty by remember { mutableStateOf(PathProperties()) }
+    // Список фреймов
+    var frames by remember { mutableStateOf(mutableListOf<Bitmap>()) }
+    // Текущий фрейм
+    var currentFrameIndex by remember { mutableStateOf(-1) }
+    // Состояние воспроизведения
+    var isPlaying by remember { mutableStateOf(false) }
+    // Текущий битмап
+    var currentBitmap by remember { mutableStateOf<Bitmap?>(null) }
+
+    var canvasWidth:Int = 0
+
+    var canvasHeight:Int = 0
 
     val canvasText = remember { StringBuilder() }
     val paint = remember {
@@ -96,7 +119,8 @@ fun Drawing(modifier: Modifier) {
             .paint(
                 painter = painterResource(id = R.drawable.background),
                 contentScale = ContentScale.FillBounds,
-                alpha = 0.5f)
+                alpha = 0.5f
+            )
             .dragMotionEvent(
                 onDragStart = { pointerInputChange ->
                     motionEvent = MotionEvent.Down
@@ -158,11 +182,41 @@ fun Drawing(modifier: Modifier) {
             onPathPropertiesChange = {
                 motionEvent = MotionEvent.Idle
             },
+            addFrame = {
+                Toast.makeText(context, "AddFrame: ${currentFrameIndex}", Toast.LENGTH_SHORT).show()
+                currentBitmap?.let { bitmap ->
+                    frames.add(bitmap)
+                    currentFrameIndex = frames.size - 1
+                    currentBitmap = null
+
+                }
+            },
+            deleteFrame = {
+                Toast.makeText(context, "DeleteFrame: ${currentFrameIndex} CurrentBitmap: ${currentBitmap}", Toast.LENGTH_SHORT).show()
+                if(currentFrameIndex > 0) {
+                    frames.removeAt(currentFrameIndex)
+                    currentFrameIndex--
+                    currentBitmap = frames.getOrNull(currentFrameIndex)
+                }
+            },
+            onStop = {
+                isPlaying = false
+                Toast.makeText(context, "Stop: ${isPlaying}", Toast.LENGTH_SHORT).show()
+            },
+            onPlay = {
+                if (frames.isNotEmpty() && !isPlaying) {
+                    isPlaying = true
+                    Toast.makeText(context, "Play: ${isPlaying}", Toast.LENGTH_SHORT).show()
+                }
+            }
         )
-        Canvas(modifier = drawModifier) {
-
+        Canvas(modifier = drawModifier
+            .onSizeChanged {
+                canvasWidth = it.width
+                canvasHeight = it.height
+            }
+        ) {
             when (motionEvent) {
-
                 MotionEvent.Down -> {
                     if (drawMode != DrawMode.Touch) {
                         currentPath.moveTo(currentPosition.x, currentPosition.y)
@@ -190,16 +244,10 @@ fun Drawing(modifier: Modifier) {
                     if (drawMode != DrawMode.Touch) {
                         currentPath.lineTo(currentPosition.x, currentPosition.y)
 
-                        // Pointer is up save current path
-//                        paths[currentPath] = currentPathProperty
                         paths.add(Pair(currentPath, currentPathProperty))
 
-                        // Since paths are keys for map, use new one for each key
-                        // and have separate path for each down-move-up gesture cycle
                         currentPath = Path()
 
-                        // Create new instance of path properties to have new path and properties
-                        // only for the one currently being drawn
                         currentPathProperty = PathProperties(
                             strokeWidth = currentPathProperty.strokeWidth,
                             color = currentPathProperty.color,
@@ -209,14 +257,13 @@ fun Drawing(modifier: Modifier) {
                         )
                     }
 
-                    // Since new path is drawn no need to store paths to undone
                     pathsUndone.clear()
 
-                    // If we leave this state at MotionEvent.Up it causes current path to draw
-                    // line from (0,0) if this composable recomposes when draw mode is changed
                     currentPosition = Offset.Unspecified
                     previousPosition = currentPosition
                     motionEvent = MotionEvent.Idle
+
+                    currentBitmap = generateCurrentBitmap(paths, canvasWidth, canvasHeight)
                 }
                 else -> Unit
             }
@@ -283,7 +330,21 @@ fun Drawing(modifier: Modifier) {
                 }
                 restoreToCount(checkPoint)
             }
+            currentBitmap?.let {
+                drawImage(it.asImageBitmap())
+            }
 
+        }
+        LaunchedEffect(isPlaying) {
+            if (isPlaying) {
+                while (isPlaying && frames.isNotEmpty()) {
+                    currentBitmap = frames[currentFrameIndex]
+                    currentFrameIndex = (currentFrameIndex + 1) % frames.size
+                    delay(1000)
+                }
+                isPlaying = false // Останавливаем после завершения анимации
+                currentBitmap = frames.getOrNull(currentFrameIndex) // Возвращаем последний кадр
+            }
         }
         // Нижнее меню
         DrawingPropertiesMenuBottom(
@@ -321,4 +382,37 @@ private fun DrawScope.drawText(text: String, x: Float, y: Float, paint: Paint) {
     lines.indices.withIndex().forEach { (posY, i) ->
         nativeCanvas.drawText(lines[i], x, posY * 40 + y, paint)
     }
+}
+
+// Функция для захвата текущего Canvas в Bitmap
+fun generateCurrentBitmap(paths: List<Pair<Path, PathProperties>>, canvasWidth: Int, canvasHeight: Int) : Bitmap{
+    // Создаем Bitmap на основе размеров Canvas
+    val bitmap = Bitmap.createBitmap(canvasWidth, canvasHeight, Bitmap.Config.ARGB_8888)
+    val canvas = android.graphics.Canvas(bitmap)
+
+    // Рендерим все пути на созданном Canvas
+    paths.forEach { (path, property) ->
+        val androidPath = android.graphics.Path()
+        path.asAndroidPath().apply {
+            androidPath.addPath(this)
+        }
+        val paint = Paint().apply {
+            color = property.color.toArgb()
+            strokeWidth = property.strokeWidth
+            when (property.strokeCap) {
+                StrokeCap.Butt -> strokeCap = Paint.Cap.BUTT
+                StrokeCap.Round -> strokeCap = Paint.Cap.ROUND
+                StrokeCap.Square -> strokeCap = Paint.Cap.SQUARE
+            }
+            when (property.strokeJoin) {
+                StrokeJoin.Miter -> strokeJoin = Paint.Join.MITER
+                StrokeJoin.Round -> strokeJoin = Paint.Join.ROUND
+                StrokeJoin.Bevel -> strokeJoin = Paint.Join.BEVEL
+            }
+            isAntiAlias = true
+        }
+        canvas.drawPath(path.asAndroidPath(), paint)
+    }
+    // Сохраняем результат в currentBitmap
+    return bitmap
 }
