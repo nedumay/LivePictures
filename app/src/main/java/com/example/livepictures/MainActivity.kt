@@ -17,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import com.example.livepictures.ui.theme.LivePicturesTheme
 
@@ -42,7 +43,6 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
-
 
 @RequiresApi(35)
 @Composable

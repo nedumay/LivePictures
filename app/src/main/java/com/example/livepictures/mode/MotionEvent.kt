@@ -1,5 +1,8 @@
 package com.example.livepictures.mode
 
 enum class MotionEvent {
-    Idle, Down, Move, Up
+    Idle,
+    Down,
+    Move,
+    Up
 }

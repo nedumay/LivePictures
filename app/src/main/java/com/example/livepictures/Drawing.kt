@@ -4,7 +4,6 @@ import android.graphics.Bitmap
 import android.graphics.Paint
 import android.graphics.PorterDuff
 import android.graphics.PorterDuffXfermode
-import android.view.View
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Canvas
@@ -29,8 +28,6 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.asAndroidPath
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.DrawScope
@@ -45,18 +42,13 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import com.example.livepictures.menu.DrawingPropertiesMenu
 import com.example.livepictures.menu.DrawingPropertiesMenuApp
 import com.example.livepictures.menu.DrawingPropertiesMenuBottom
 import com.example.livepictures.mode.DrawMode
 import com.example.livepictures.mode.MotionEvent
 import com.example.livepictures.mode.dragMotionEvent
 import com.example.livepictures.model.PathProperties
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 
 
 @RequiresApi(35)
@@ -66,16 +58,12 @@ fun Drawing(modifier: Modifier) {
     val context = LocalContext.current
     // Пути для рисования
     val paths = remember { mutableStateListOf<Pair<Path, PathProperties>>() }
-
     // Пути для отмены рисования (возврата при нажатии на кнопку)
     val pathsUndone = remember { mutableStateListOf<Pair<Path, PathProperties>>() }
-
     //Текущее положение указателя, который нажат на экране
     var currentPosition by remember { mutableStateOf(Offset.Unspecified) }
-
     //Предыдущее событие движения перед следующим касанием сохраняется в этой текущей позиции
     var previousPosition by remember { mutableStateOf(Offset.Unspecified) }
-
     //Режим рисования, режим стирания или режим касания для
     var drawMode by remember { mutableStateOf(DrawMode.Draw) }
     //Для перемещения
@@ -89,12 +77,13 @@ fun Drawing(modifier: Modifier) {
     var currentFrameIndex by remember { mutableStateOf(-1) }
     // Состояние воспроизведения
     var isPlaying by remember { mutableStateOf(false) }
+
     // Текущий битмап
     var currentBitmap by remember { mutableStateOf<Bitmap?>(null) }
 
-    var canvasWidth:Int = 0
+    var canvasWidth: Int = 0
 
-    var canvasHeight:Int = 0
+    var canvasHeight: Int = 0
 
     var fadeEffectEnabled by remember { mutableStateOf(false) }
 
@@ -138,7 +127,7 @@ fun Drawing(modifier: Modifier) {
                 onDrag = { pointerInputChange ->
                     motionEvent = MotionEvent.Move
                     currentPosition = pointerInputChange.position
-
+                    /*
                     if (drawMode == DrawMode.Touch) {
                         val change = pointerInputChange.positionChange()
                         println("DRAG: $change")
@@ -147,7 +136,7 @@ fun Drawing(modifier: Modifier) {
                             path.translate(change)
                         }
                         currentPath.translate(change)
-                    }
+                    }*/
                     pointerInputChange.consumePositionChange()
 
                 },
@@ -186,14 +175,12 @@ fun Drawing(modifier: Modifier) {
                 motionEvent = MotionEvent.Idle
             },
             addFrame = {
-
                 currentBitmap?.let { bitmap ->
                     frames.add(bitmap)
                     currentFrameIndex = frames.size - 1
                     currentBitmap = null
 
                     fadeEffectEnabled = true
-                    Toast.makeText(context, "AddFrame: ${currentFrameIndex}", Toast.LENGTH_SHORT).show()
 
                     if (paths.isNotEmpty()) {
                        val lastItem = paths.last()
@@ -205,6 +192,7 @@ fun Drawing(modifier: Modifier) {
                 }
             },
             deleteFrame = {
+
                 if(frames.isNotEmpty() && currentFrameIndex >= 0) {
                     frames.removeAt(currentFrameIndex)
                     currentFrameIndex = if (currentFrameIndex > 0) currentFrameIndex - 1 else 0
@@ -215,11 +203,13 @@ fun Drawing(modifier: Modifier) {
                 }
             },
             onStop = {
+                drawMode = DrawMode.NotDraw
                 isPlaying = false
                 uiVisibility = true
                 Toast.makeText(context, "Stop: ${isPlaying}", Toast.LENGTH_SHORT).show()
             },
             onPlay = {
+                drawMode = DrawMode.NotDraw
                 if (frames.isNotEmpty() && !isPlaying) {
                     isPlaying = true
                     uiVisibility = false
@@ -228,12 +218,15 @@ fun Drawing(modifier: Modifier) {
             },
             uiVisibility = uiVisibility
         )
-        Canvas(modifier = drawModifier
+        Canvas(
+            modifier = drawModifier
+
             .onSizeChanged {
                 canvasWidth = it.width
                 canvasHeight = it.height
             }
         ) {
+
             if (fadeEffectEnabled) {
                 drawRect(
                     color = Color.White.copy(alpha = 0.1f), // Настройка прозрачности затухания
@@ -245,16 +238,17 @@ fun Drawing(modifier: Modifier) {
 
             when (motionEvent) {
                 MotionEvent.Down -> {
-                    if (drawMode != DrawMode.Touch) {
+                    if (drawMode != DrawMode.NotDraw) {
                         currentPath.moveTo(currentPosition.x, currentPosition.y)
                     }
 
                     previousPosition = currentPosition
 
                 }
+
                 MotionEvent.Move -> {
 
-                    if (drawMode != DrawMode.Touch) {
+                    if (drawMode != DrawMode.NotDraw) {
                         currentPath.quadraticBezierTo(
                             previousPosition.x,
                             previousPosition.y,
@@ -268,7 +262,7 @@ fun Drawing(modifier: Modifier) {
                 }
 
                 MotionEvent.Up -> {
-                    if (drawMode != DrawMode.Touch) {
+                    if (drawMode != DrawMode.NotDraw) {
                         currentPath.lineTo(currentPosition.x, currentPosition.y)
 
                         paths.add(Pair(currentPath, currentPathProperty))
@@ -292,6 +286,7 @@ fun Drawing(modifier: Modifier) {
 
                     currentBitmap = generateCurrentBitmap(paths, canvasWidth, canvasHeight)
                 }
+
                 else -> Unit
             }
 
@@ -357,11 +352,13 @@ fun Drawing(modifier: Modifier) {
                 }
                 restoreToCount(checkPoint)
             }
+
             currentBitmap?.let {
                 drawImage(it.asImageBitmap())
             }
 
         }
+
         LaunchedEffect(isPlaying) {
             if (isPlaying) {
                 while (isPlaying && frames.isNotEmpty()) {
@@ -413,7 +410,11 @@ private fun DrawScope.drawText(text: String, x: Float, y: Float, paint: Paint) {
 }
 
 // Функция для захвата текущего Canvas в Bitmap
-fun generateCurrentBitmap(paths: List<Pair<Path, PathProperties>>, canvasWidth: Int, canvasHeight: Int) : Bitmap{
+fun generateCurrentBitmap(
+    paths: List<Pair<Path, PathProperties>>,
+    canvasWidth: Int,
+    canvasHeight: Int
+): Bitmap {
     // Создаем Bitmap на основе размеров Canvas
     val bitmap = Bitmap.createBitmap(canvasWidth, canvasHeight, Bitmap.Config.ARGB_8888)
     val canvas = android.graphics.Canvas(bitmap)
@@ -425,7 +426,7 @@ fun generateCurrentBitmap(paths: List<Pair<Path, PathProperties>>, canvasWidth: 
             androidPath.addPath(this)
         }
         val paint = Paint().apply {
-            if(property.eraseMode) {
+            if (property.eraseMode) {
                 xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR)
             } else {
                 xfermode = PorterDuffXfermode(PorterDuff.Mode.ADD)
