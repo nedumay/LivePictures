@@ -1,15 +1,32 @@
-Проект для YandexCup.
+# Live picture <img src="https://img.shields.io/badge/version-1.0.0-green" alt="App Version">
+Drawing app. In development... Update: 22.12.2024
 
-Реализовано:
+What's new: ...
 
-1. Холст — рабочая область для рисования с «бумажным» фоном , распознающую действия рисования пользователя.
-2. Верхнее и нижнее меню.
-3. Инструменты рисования: карандаш, который оставляет на холсте следы выбранного цвета, следуя за пальцем, и ластик, который стирает эти следы с холста, также следуя за движением пальца.
-4. Контроль изменения цвета рисования с возможностью выбора любого цветов.
-5. Кнопки отмены и возврата последнего действия. Для карандаша и ластика.
-6. Кнопку создания следующего кадра. При её нажатии текущий кадр сохраняется для последующего воспроизведения, а на экране появляется чистый холст.
-7. Кнопку удаления текущего кадра, которая возвращает пользователя к рисованию предыдущего кадра.
-8. Запуск и остановку воспроизведения анимации. При старте воспроизведения необходимо выключить или скрыть все элементы управления, кроме холста, на котором воспроизводятся кадры, а также кнопки остановки воспроизведения.
+Download: ...
+
+Application сapabilities ::
+1. Canvas - a working area for drawing with a “paper” background, recognizing the user's drawing actions.
+2. Top and bottom menus.
+3. Drawing tools: a pencil that leaves traces of the chosen color on the canvas, following your finger, and an eraser that erases these traces from the canvas, also following the movement of your finger.
+4. Drawing color change control with the ability to select any color.
+5. Buttons to cancel and return the last action. For pencil and eraser.
+
+Currently in the works: 
+
+6. The button to create the next frame. When you press it, the current frame is saved for later playback, and a blank canvas appears on the screen.
+7. The button of deleting the current frame, which returns the user to the drawing of the previous frame.
+8. Start and stop animation playback. When starting playback, you should turn off or hide all controls except the canvas on which the frames are played, as well as the playback stop button.
+9. Redesign of the entire UI.
+
+
+# Development Environment
+
+The app is written entirely in Kotlin and uses the Gradle build system.
+
+Tools and Libraries: Canvas, Jetpack Compose
+
+Language Support: English, Russian
 
 ![photo_2024-12-22_21-56-09](https://github.com/user-attachments/assets/8c725549-1cfa-42b4-8248-8adc43110875)
 ![photo_2024-12-22_21-56-08](https://github.com/user-attachments/assets/89723139-c798-41f6-81d2-187d1fb8aaea)
