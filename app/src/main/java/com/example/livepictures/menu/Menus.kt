@@ -1,5 +1,6 @@
 package com.example.livepictures.menu
 
+import android.content.res.Resources.Theme
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -23,6 +24,7 @@ import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -45,6 +47,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -53,9 +56,8 @@ import com.example.livepictures.mode.DrawMode
 import com.example.livepictures.model.PathProperties
 import com.example.livepictures.selectColors.ColorSlider
 import com.example.livepictures.selectColors.ColorWheel
-import com.example.livepictures.ui.theme.Blue
-import com.example.livepictures.ui.theme.Gray
-import com.example.livepictures.ui.theme.White
+import com.example.livepictures.ui.theme.Black
+import com.example.livepictures.ui.theme.Purple40
 import kotlin.math.roundToInt
 
 @Composable
@@ -71,13 +73,13 @@ fun DrawingPropertiesMenuApp(
     onPlay: () -> Unit,
     uiVisibility: Boolean
 
-){
+) {
     Row(
         modifier = modifier
             .fillMaxWidth()
             .height(45.dp)
     ) {
-        if(uiVisibility) {
+        if (uiVisibility) {
             Row(modifier = Modifier.weight(1f)) {
                 IconButton(onClick = {
                     onUndo()
@@ -85,7 +87,7 @@ fun DrawingPropertiesMenuApp(
                     Icon(
                         imageVector = ImageVector.vectorResource(id = R.drawable.right_unactive),
                         contentDescription = " ",
-                        tint = Color.White // Условия для изменения цвета
+                        tint = Color.White
                     )
                 }
                 IconButton(onClick = {
@@ -94,12 +96,12 @@ fun DrawingPropertiesMenuApp(
                     Icon(
                         imageVector = ImageVector.vectorResource(id = R.drawable.left_unactive),
                         contentDescription = " ",
-                        tint = Color.White // Условия для изменения цвета
+                        tint = Color.White
                     )
                 }
             }
-        }
-        if(uiVisibility) {
+        } /*
+        if (uiVisibility) {
             Row(
                 modifier = Modifier
                     .weight(2f),
@@ -139,7 +141,7 @@ fun DrawingPropertiesMenuApp(
                 Icon(
                     imageVector = ImageVector.vectorResource(id = R.drawable.stop_unactive),
                     contentDescription = " ",
-                    tint = if (uiVisibility) Gray else Color.White // Условия для изменения цвета
+                    tint = if (uiVisibility) Gray else Color.White
                 )
             }
             IconButton(onClick = {
@@ -148,13 +150,14 @@ fun DrawingPropertiesMenuApp(
                 Icon(
                     imageVector = ImageVector.vectorResource(id = R.drawable.play_unactive),
                     contentDescription = " ",
-                    tint = if (uiVisibility) White else Color.Gray // Условия для изменения цвета
+                    tint = if (uiVisibility) White else Color.Gray
                 )
             }
-        }
+        }*/
     }
 
 }
+
 @Composable
 fun DrawingPropertiesMenuBottom(
     modifier: Modifier = Modifier,
@@ -163,7 +166,7 @@ fun DrawingPropertiesMenuBottom(
     onPathPropertiesChange: (PathProperties) -> Unit,
     onDrawModeChanged: (DrawMode) -> Unit,
     uiVisibility: Boolean
-){
+) {
     val properties by rememberUpdatedState(newValue = pathProperties)
 
     var showColorDialog by remember { mutableStateOf(false) }
@@ -177,7 +180,7 @@ fun DrawingPropertiesMenuBottom(
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        if(uiVisibility) {
+        if (uiVisibility) {
             IconButton(onClick = {
                 currentDrawMode = if (currentDrawMode == DrawMode.Touch) {
                     DrawMode.Draw
@@ -189,7 +192,7 @@ fun DrawingPropertiesMenuBottom(
                 Icon(
                     imageVector = ImageVector.vectorResource(id = R.drawable.pencel),
                     contentDescription = " ",
-                    tint = if (currentDrawMode == DrawMode.Draw) com.example.livepictures.ui.theme.Green else Color.White
+                    tint = if (currentDrawMode == DrawMode.Draw) colorScheme.primary else Color.White
                 )
             }
             IconButton(onClick = {
@@ -203,7 +206,7 @@ fun DrawingPropertiesMenuBottom(
                 Icon(
                     imageVector = ImageVector.vectorResource(id = R.drawable.brush),
                     contentDescription = " ",
-                    tint = if (currentDrawMode == DrawMode.Brush) com.example.livepictures.ui.theme.Green else Color.White
+                    tint = if (currentDrawMode == DrawMode.Brush) colorScheme.primary else Color.White
                 )
             }
             IconButton(onClick = {
@@ -217,7 +220,7 @@ fun DrawingPropertiesMenuBottom(
                 Icon(
                     imageVector = ImageVector.vectorResource(id = R.drawable.erase),
                     contentDescription = " ",
-                    tint = if (currentDrawMode == DrawMode.Erase) com.example.livepictures.ui.theme.Green else Color.White
+                    tint = if (currentDrawMode == DrawMode.Erase) colorScheme.primary else Color.White
                 )
             }
             IconButton(onClick = {
@@ -275,7 +278,6 @@ fun PropertiesMenuDialog(pathOption: PathProperties, onDismiss: () -> Unit) {
     Dialog(onDismissRequest = onDismiss) {
 
         Card(
-            //elevation = 8.dp,
             shape = RoundedCornerShape(8.dp),
             modifier = Modifier.padding(vertical = 8.dp)
         ) {
@@ -283,7 +285,7 @@ fun PropertiesMenuDialog(pathOption: PathProperties, onDismiss: () -> Unit) {
 
                 Text(
                     text = "Properties",
-                    color = Color.Blue,
+                    color = Black,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(start = 12.dp, top = 12.dp)
@@ -313,6 +315,7 @@ fun PropertiesMenuDialog(pathOption: PathProperties, onDismiss: () -> Unit) {
                 Text(
                     text = "Stroke Width ${strokeWidth.toInt()}",
                     fontSize = 16.sp,
+                    color = Black,
                     modifier = Modifier.padding(horizontal = 12.dp)
                 )
 
@@ -327,7 +330,8 @@ fun PropertiesMenuDialog(pathOption: PathProperties, onDismiss: () -> Unit) {
                 )
 
 
-                ExposedSelectionMenu(title = "Stroke Cap",
+                ExposedSelectionMenu(
+                    title = "Stroke Cap",
                     index = when (strokeCap) {
                         StrokeCap.Butt -> 0
                         StrokeCap.Round -> 1
@@ -406,7 +410,7 @@ fun ColorSelectionDialog(
 
                 Text(
                     text = "Color",
-                    color = Blue,
+                    color = Purple40,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(top = 12.dp)
@@ -516,13 +520,15 @@ fun ColorSelectionDialog(
                         modifier = Modifier
                             .weight(1f)
                             .fillMaxHeight()
+                            .background(Black),
                     ) {
                         Text(text = "CANCEL")
                     }
                     TextButton(
                         modifier = Modifier
                             .weight(1f)
-                            .fillMaxHeight(),
+                            .fillMaxHeight()
+                            .background(Black),
                         onClick = {
                             onPositiveClick(color)
                         },
@@ -610,113 +616,42 @@ fun ExposedSelectionMenu(
     }
 }
 
-
+@Preview(showBackground = true)
 @Composable
-fun DrawingPropertiesMenu(
-    modifier: Modifier = Modifier,
-    pathProperties: PathProperties,
-    drawMode: DrawMode,
-    onUndo: () -> Unit,
-    onRedo: () -> Unit,
-    onPathPropertiesChange: (PathProperties) -> Unit,
-    onDrawModeChanged: (DrawMode) -> Unit
-) {
+fun PreviewDrawingPropertiesMenuApp() {
+    DrawingPropertiesMenuApp(
+        onUndo = {},
+        onRedo = {},
+        pathProperties = PathProperties(),
+        onPathPropertiesChange = {},
+        deleteFrame = {},
+        addFrame = {},
+        onStop = {},
+        onPlay = {},
+        uiVisibility = true
+    )
+}
 
-    val properties by rememberUpdatedState(newValue = pathProperties)
+@Preview
+@Composable
+fun PreviewColorSelection() {
+    ColorSelectionDialog(
+        initialColor = Color.White,
+        onDismiss = {},
+        onNegativeClick = {},
+        onPositiveClick = {}
+    )
+}
 
-    var showColorDialog by remember { mutableStateOf(false) }
-    var showPropertiesDialog by remember { mutableStateOf(false) }
-    var currentDrawMode = drawMode
-
-    Row(
-        modifier = modifier
-//            .background(getRandomColor())
-        ,
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceEvenly
-    ) {
-        IconButton(
-            onClick = {
-                currentDrawMode = if (currentDrawMode == DrawMode.Touch) {
-                    DrawMode.Draw
-                } else {
-                    DrawMode.Touch
-                }
-                onDrawModeChanged(currentDrawMode)
-            }
-        ) {
-            Icon(
-                imageVector = ImageVector.vectorResource(id = R.drawable.pencel),
-                contentDescription = null,
-                tint = if (currentDrawMode == DrawMode.Touch) Color.Black else Color.LightGray
-            )
-        }
-        IconButton(
-            onClick = {
-                currentDrawMode = if (currentDrawMode == DrawMode.Erase) {
-                    DrawMode.Draw
-                } else {
-                    DrawMode.Erase
-                }
-                onDrawModeChanged(currentDrawMode)
-            }
-        ) {
-            Icon(
-                imageVector = ImageVector.vectorResource(id = R.drawable.erase),
-                contentDescription = null,
-                tint = if (currentDrawMode == DrawMode.Erase) Color.Black else Color.LightGray
-            )
-        }
-
-
-        IconButton(onClick = { showColorDialog = !showColorDialog }) {
-            ColorWheel(modifier = Modifier.size(24.dp))
-        }
-
-        IconButton(onClick = { showPropertiesDialog = !showPropertiesDialog }) {
-            Icon(
-                imageVector = ImageVector.vectorResource(id = R.drawable.ellipse),
-                contentDescription = null,
-                tint = Color.LightGray
-            )
-        }
-
-        IconButton(onClick = {
-            onUndo()
-        }) {
-            Icon(
-                imageVector = ImageVector.vectorResource(id = R.drawable.right_unactive),
-                contentDescription = null,
-                tint = Color.LightGray
-            )
-        }
-
-        IconButton(onClick = {
-            onRedo()
-        }) {
-            Icon(
-                imageVector = ImageVector.vectorResource(id = R.drawable.left_unactive),
-                contentDescription = null,
-                tint = Color.LightGray
-            )
-        }
-    }
-
-    if (showColorDialog) {
-        ColorSelectionDialog(
-            properties.color,
-            onDismiss = { showColorDialog = !showColorDialog },
-            onNegativeClick = { showColorDialog = !showColorDialog },
-            onPositiveClick = { color: Color ->
-                showColorDialog = !showColorDialog
-                properties.color = color
-            }
-        )
-    }
-
-    if (showPropertiesDialog) {
-        PropertiesMenuDialog(properties) {
-            showPropertiesDialog = !showPropertiesDialog
-        }
-    }
+@Preview(showBackground = true)
+@Composable
+fun PreviewDrawingPropertiesMenuBottom() {
+    DrawingPropertiesMenuBottom(
+        modifier = Modifier,
+        pathProperties = PathProperties(),
+        drawMode = DrawMode.Draw,
+        onPathPropertiesChange = {},
+        onDrawModeChanged = {},
+        uiVisibility = true
+    )
 }

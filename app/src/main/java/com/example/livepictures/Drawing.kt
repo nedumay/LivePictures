@@ -4,7 +4,6 @@ import android.graphics.Bitmap
 import android.graphics.Paint
 import android.graphics.PorterDuff
 import android.graphics.PorterDuffXfermode
-import android.view.View
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Canvas
@@ -14,8 +13,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -29,10 +28,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.asAndroidPath
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.nativeCanvas
@@ -41,22 +37,15 @@ import androidx.compose.ui.input.pointer.consumeDownChange
 import androidx.compose.ui.input.pointer.consumePositionChange
 import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import com.example.livepictures.menu.DrawingPropertiesMenu
 import com.example.livepictures.menu.DrawingPropertiesMenuApp
 import com.example.livepictures.menu.DrawingPropertiesMenuBottom
 import com.example.livepictures.mode.DrawMode
 import com.example.livepictures.mode.MotionEvent
 import com.example.livepictures.mode.dragMotionEvent
 import com.example.livepictures.model.PathProperties
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 
 
 @RequiresApi(35)
@@ -83,6 +72,7 @@ fun Drawing(modifier: Modifier) {
     //Отслеживание текущей позиции касания
     var currentPath by remember { mutableStateOf(Path()) }
     var currentPathProperty by remember { mutableStateOf(PathProperties()) }
+
     // Список фреймов
     var frames by remember { mutableStateOf(mutableListOf<Bitmap>()) }
     // Текущий фрейм
@@ -92,25 +82,18 @@ fun Drawing(modifier: Modifier) {
     // Текущий битмап
     var currentBitmap by remember { mutableStateOf<Bitmap?>(null) }
 
-    var canvasWidth:Int = 0
+    var canvasWidth: Int = 0
 
-    var canvasHeight:Int = 0
+    var canvasHeight: Int = 0
 
     var fadeEffectEnabled by remember { mutableStateOf(false) }
 
     var uiVisibility by remember { mutableStateOf(true) }
 
-    val canvasText = remember { StringBuilder() }
-    val paint = remember {
-        Paint().apply {
-            textSize = 40f
-            color = Color.Black.toArgb()
-        }
-    }
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Black)
+            .background(colorScheme.background)
     ) {
 
         val drawModifier = Modifier
@@ -162,78 +145,97 @@ fun Drawing(modifier: Modifier) {
                 .padding(bottom = 8.dp, start = 8.dp, end = 8.dp)
                 .shadow(1.dp, RoundedCornerShape(8.dp))
                 .fillMaxWidth()
-                .background(Color.Black)
+                .background(colorScheme.primary)
                 .padding(4.dp),
             onUndo = {
                 if (paths.isNotEmpty()) {
+
                     val lastItem = paths.last()
                     val lastPath = lastItem.first
                     val lastPathProperty = lastItem.second
                     paths.remove(lastItem)
+
                     pathsUndone.add(Pair(lastPath, lastPathProperty))
+
                 }
+
             },
             onRedo = {
                 if (pathsUndone.isNotEmpty()) {
+
                     val lastPath = pathsUndone.last().first
                     val lastPathProperty = pathsUndone.last().second
                     pathsUndone.removeLast()
                     paths.add(Pair(lastPath, lastPathProperty))
                 }
+
             },
             pathProperties = currentPathProperty,
             onPathPropertiesChange = {
                 motionEvent = MotionEvent.Idle
             },
             addFrame = {
-
+                /*
                 currentBitmap?.let { bitmap ->
                     frames.add(bitmap)
                     currentFrameIndex = frames.size - 1
                     currentBitmap = null
 
                     fadeEffectEnabled = true
-                    Toast.makeText(context, "AddFrame: ${currentFrameIndex}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "AddFrame: ${currentFrameIndex}", Toast.LENGTH_SHORT)
+                        .show()
 
                     if (paths.isNotEmpty()) {
-                       val lastItem = paths.last()
-                       val lastPath = lastItem.first
-                       val lastPathProperty = lastItem.second
-                       paths.remove(lastItem)
-                       pathsUndone.add(Pair(lastPath, lastPathProperty))
-                   }
-                }
+                        val lastItem = paths.last()
+                        val lastPath = lastItem.first
+                        val lastPathProperty = lastItem.second
+                        paths.remove(lastItem)
+                        pathsUndone.add(Pair(lastPath, lastPathProperty))
+                    }
+                }*/
             },
             deleteFrame = {
-                if(frames.isNotEmpty() && currentFrameIndex >= 0) {
+                /*
+                if (frames.isNotEmpty() && currentFrameIndex >= 0) {
                     frames.removeAt(currentFrameIndex)
                     currentFrameIndex = if (currentFrameIndex > 0) currentFrameIndex - 1 else 0
                     currentBitmap = frames.getOrNull(currentFrameIndex)
-                    Toast.makeText(context, "DeleteFrame: ${currentFrameIndex} CurrentBitmap: ${currentBitmap}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                        context,
+                        "DeleteFrame: ${currentFrameIndex} CurrentBitmap: ${currentBitmap}",
+                        Toast.LENGTH_SHORT
+                    ).show()
                 } else {
                     Toast.makeText(context, "No Frame to Delete", Toast.LENGTH_SHORT).show()
-                }
+                }*/
             },
             onStop = {
+                /*
                 isPlaying = false
                 uiVisibility = true
                 Toast.makeText(context, "Stop: ${isPlaying}", Toast.LENGTH_SHORT).show()
+
+                 */
             },
             onPlay = {
+                /*
                 if (frames.isNotEmpty() && !isPlaying) {
                     isPlaying = true
                     uiVisibility = false
                     Toast.makeText(context, "Play: ${isPlaying}", Toast.LENGTH_SHORT).show()
-                }
+                }*/
             },
             uiVisibility = uiVisibility
         )
-        Canvas(modifier = drawModifier
+        Canvas(
+            modifier = drawModifier
+            /*
             .onSizeChanged {
                 canvasWidth = it.width
                 canvasHeight = it.height
-            }
+            }*/
         ) {
+            /*
             if (fadeEffectEnabled) {
                 drawRect(
                     color = Color.White.copy(alpha = 0.1f), // Настройка прозрачности затухания
@@ -241,7 +243,7 @@ fun Drawing(modifier: Modifier) {
                 )
                 // Сбрасываем эффект после отрисовки
                 fadeEffectEnabled = false
-            }
+            }*/
 
             when (motionEvent) {
                 MotionEvent.Down -> {
@@ -252,6 +254,7 @@ fun Drawing(modifier: Modifier) {
                     previousPosition = currentPosition
 
                 }
+
                 MotionEvent.Move -> {
 
                     if (drawMode != DrawMode.Touch) {
@@ -290,8 +293,9 @@ fun Drawing(modifier: Modifier) {
                     previousPosition = currentPosition
                     motionEvent = MotionEvent.Idle
 
-                    currentBitmap = generateCurrentBitmap(paths, canvasWidth, canvasHeight)
+                    //currentBitmap = generateCurrentBitmap(paths, canvasWidth, canvasHeight)
                 }
+
                 else -> Unit
             }
 
@@ -357,11 +361,13 @@ fun Drawing(modifier: Modifier) {
                 }
                 restoreToCount(checkPoint)
             }
+            /*
             currentBitmap?.let {
                 drawImage(it.asImageBitmap())
-            }
+            }*/
 
         }
+        /*
         LaunchedEffect(isPlaying) {
             if (isPlaying) {
                 while (isPlaying && frames.isNotEmpty()) {
@@ -372,14 +378,14 @@ fun Drawing(modifier: Modifier) {
                 isPlaying = false // Останавливаем после завершения анимации
                 currentBitmap = frames.getOrNull(currentFrameIndex) // Возвращаем последний кадр
             }
-        }
+        }*/
         // Нижнее меню
         DrawingPropertiesMenuBottom(
             modifier = Modifier
                 .padding(bottom = 8.dp, start = 8.dp, end = 8.dp)
                 .shadow(1.dp, RoundedCornerShape(8.dp))
                 .fillMaxWidth()
-                .background(Color.Black)
+                .background(colorScheme.background)
                 .padding(4.dp),
             pathProperties = currentPathProperty,
             drawMode = drawMode,
@@ -413,7 +419,11 @@ private fun DrawScope.drawText(text: String, x: Float, y: Float, paint: Paint) {
 }
 
 // Функция для захвата текущего Canvas в Bitmap
-fun generateCurrentBitmap(paths: List<Pair<Path, PathProperties>>, canvasWidth: Int, canvasHeight: Int) : Bitmap{
+fun generateCurrentBitmap(
+    paths: List<Pair<Path, PathProperties>>,
+    canvasWidth: Int,
+    canvasHeight: Int
+): Bitmap {
     // Создаем Bitmap на основе размеров Canvas
     val bitmap = Bitmap.createBitmap(canvasWidth, canvasHeight, Bitmap.Config.ARGB_8888)
     val canvas = android.graphics.Canvas(bitmap)
@@ -425,13 +435,13 @@ fun generateCurrentBitmap(paths: List<Pair<Path, PathProperties>>, canvasWidth: 
             androidPath.addPath(this)
         }
         val paint = Paint().apply {
-            if(property.eraseMode) {
+            if (property.eraseMode) {
                 xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR)
             } else {
                 xfermode = PorterDuffXfermode(PorterDuff.Mode.ADD)
                 color = property.color.toArgb()
                 strokeWidth = property.strokeWidth
-                style = Paint.Style.STROKE // Replace Stroke with Paint.Style.STROKE
+                style = Paint.Style.STROKE
                 isAntiAlias = true
             }
         }
