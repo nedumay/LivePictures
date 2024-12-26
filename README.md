@@ -1,7 +1,7 @@
 # Live picture <img src="https://img.shields.io/badge/version-1.0.0-green" alt="App Version">
-Drawing app. In development... Update: 22.12.2024
+Drawing app. In development... Update: 26.12.2024
 
-What's new: ...
+What's new: Added a dark and light theme 
 
 Download: ...
 
