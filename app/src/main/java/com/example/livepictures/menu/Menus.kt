@@ -45,6 +45,7 @@ import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -229,6 +230,7 @@ fun DrawingPropertiesMenuBottom(
                 Icon(
                     imageVector = ImageVector.vectorResource(id = R.drawable.instruments),
                     contentDescription = " ",
+                    tint = Color.Gray
                     //tint = if (selectedIcon == 3) com.example.livepictures.ui.theme.Green else Color.White //Исправить цвета
                 )
             }
@@ -284,8 +286,8 @@ fun PropertiesMenuDialog(pathOption: PathProperties, onDismiss: () -> Unit) {
             Column(modifier = Modifier.padding(8.dp)) {
 
                 Text(
-                    text = "Properties",
-                    color = Black,
+                    text = stringResource(id = R.string.properties),
+                    color = Color.White,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(start = 12.dp, top = 12.dp)
@@ -313,9 +315,9 @@ fun PropertiesMenuDialog(pathOption: PathProperties, onDismiss: () -> Unit) {
                 }
 
                 Text(
-                    text = "Stroke Width ${strokeWidth.toInt()}",
+                    text = stringResource(id = R.string.stroke) + " " + stringResource(id = R.string.width) +  " ${strokeWidth.toInt()}",
                     fontSize = 16.sp,
-                    color = Black,
+                    color = Color.White,
                     modifier = Modifier.padding(horizontal = 12.dp)
                 )
 
@@ -331,7 +333,7 @@ fun PropertiesMenuDialog(pathOption: PathProperties, onDismiss: () -> Unit) {
 
 
                 ExposedSelectionMenu(
-                    title = "Stroke Cap",
+                    title = stringResource(id = R.string.stroke) + " " + stringResource(id = R.string.cap),
                     index = when (strokeCap) {
                         StrokeCap.Butt -> 0
                         StrokeCap.Round -> 1
@@ -339,7 +341,7 @@ fun PropertiesMenuDialog(pathOption: PathProperties, onDismiss: () -> Unit) {
                     },
                     options = listOf("Butt", "Round", "Square"),
                     onSelected = {
-                        println("STOKE CAP $it")
+
                         strokeCap = when (it) {
                             0 -> StrokeCap.Butt
                             1 -> StrokeCap.Round
@@ -351,7 +353,7 @@ fun PropertiesMenuDialog(pathOption: PathProperties, onDismiss: () -> Unit) {
                     }
                 )
 
-                ExposedSelectionMenu(title = "Stroke Join",
+                ExposedSelectionMenu(title = stringResource(id = R.string.stroke) + " " + stringResource(id = R.string.join),
                     index = when (strokeJoin) {
                         StrokeJoin.Miter -> 0
                         StrokeJoin.Round -> 1
@@ -359,7 +361,6 @@ fun PropertiesMenuDialog(pathOption: PathProperties, onDismiss: () -> Unit) {
                     },
                     options = listOf("Miter", "Round", "Bevel"),
                     onSelected = {
-                        println("STOKE JOIN $it")
 
                         strokeJoin = when (it) {
                             0 -> StrokeJoin.Miter
@@ -409,7 +410,7 @@ fun ColorSelectionDialog(
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
 
                 Text(
-                    text = "Color",
+                    text = stringResource(id = R.string.color),
                     color = Purple40,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
@@ -522,7 +523,7 @@ fun ColorSelectionDialog(
                             .fillMaxHeight()
                             .background(Black),
                     ) {
-                        Text(text = "CANCEL")
+                        Text(text = stringResource(id = R.string.cancel))
                     }
                     TextButton(
                         modifier = Modifier
@@ -533,7 +534,7 @@ fun ColorSelectionDialog(
                             onPositiveClick(color)
                         },
                     ) {
-                        Text(text = "OK")
+                        Text(text = stringResource(id = R.string.ok))
                     }
                 }
             }

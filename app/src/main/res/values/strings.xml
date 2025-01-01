@@ -1,3 +1,11 @@
 <resources>
     <string name="app_name">LivePictures</string>
+    <string name="color">Color</string>
+    <string name="properties">Properties</string>
+    <string name="stroke">Stroke</string>
+    <string name="width">Width</string>
+    <string name="cap">Cap</string>
+    <string name="join">Join</string>
+    <string name="cancel">Cancel</string>
+    <string name="ok">Ok</string>
 </resources>

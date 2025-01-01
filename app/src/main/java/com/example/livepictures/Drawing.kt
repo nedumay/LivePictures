@@ -4,7 +4,6 @@ import android.graphics.Bitmap
 import android.graphics.Paint
 import android.graphics.PorterDuff
 import android.graphics.PorterDuffXfermode
-import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -145,7 +144,7 @@ fun Drawing(modifier: Modifier) {
                 .padding(bottom = 8.dp, start = 8.dp, end = 8.dp)
                 .shadow(1.dp, RoundedCornerShape(8.dp))
                 .fillMaxWidth()
-                .background(colorScheme.primary)
+                .background(colorScheme.background)
                 .padding(4.dp),
             onUndo = {
                 if (paths.isNotEmpty()) {
@@ -158,7 +157,6 @@ fun Drawing(modifier: Modifier) {
                     pathsUndone.add(Pair(lastPath, lastPathProperty))
 
                 }
-
             },
             onRedo = {
                 if (pathsUndone.isNotEmpty()) {
@@ -168,7 +166,6 @@ fun Drawing(modifier: Modifier) {
                     pathsUndone.removeLast()
                     paths.add(Pair(lastPath, lastPathProperty))
                 }
-
             },
             pathProperties = currentPathProperty,
             onPathPropertiesChange = {
@@ -244,7 +241,6 @@ fun Drawing(modifier: Modifier) {
                 // Сбрасываем эффект после отрисовки
                 fadeEffectEnabled = false
             }*/
-
             when (motionEvent) {
                 MotionEvent.Down -> {
                     if (drawMode != DrawMode.Touch) {
@@ -256,7 +252,6 @@ fun Drawing(modifier: Modifier) {
                 }
 
                 MotionEvent.Move -> {
-
                     if (drawMode != DrawMode.Touch) {
                         currentPath.quadraticBezierTo(
                             previousPosition.x,
@@ -266,7 +261,6 @@ fun Drawing(modifier: Modifier) {
 
                         )
                     }
-
                     previousPosition = currentPosition
                 }
 
@@ -319,7 +313,6 @@ fun Drawing(modifier: Modifier) {
                             )
                         )
                     } else {
-
                         // Source
                         drawPath(
                             color = Color.Transparent,
@@ -396,10 +389,11 @@ fun Drawing(modifier: Modifier) {
                 motionEvent = MotionEvent.Idle
                 drawMode = it
                 currentPathProperty.eraseMode = (drawMode == DrawMode.Erase)
+                /*
                 Toast.makeText(
                     context, "pathProperty: ${currentPathProperty.hashCode()}, " +
                             "Erase Mode: ${currentPathProperty.eraseMode}", Toast.LENGTH_SHORT
-                ).show()
+                ).show()*/
             },
             uiVisibility = uiVisibility
         )
