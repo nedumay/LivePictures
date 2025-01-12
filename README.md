@@ -3,7 +3,7 @@ Drawing app. In development... Update: 12.01.2025
 
 What's new: Fix colors 
 
-Download: ...
+Download: https://www.rustore.ru/catalog/app/com.example.livepictures
 
 Application сapabilities ::
 1. Canvas - a working area for drawing with a “paper” background, recognizing the user's drawing actions.
