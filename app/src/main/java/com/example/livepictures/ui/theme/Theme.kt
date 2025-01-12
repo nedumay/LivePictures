@@ -5,6 +5,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 
 private val DarkColorScheme = darkColorScheme(
     primary = Blue3,
@@ -12,16 +13,18 @@ private val DarkColorScheme = darkColorScheme(
     background = Black,
     surface = Black,
     onBackground = Blue3,
-    onSurface = Blue3
+    onSurface = Blue3,
+    onSecondary = White
 )
 
 private val LightColorScheme = lightColorScheme(
     primary = Pink2,
-    onPrimary = Gray,
-    background = Gray,
-    surface = Gray,
+    onPrimary = Black,
+    background = Black,
+    surface = Black,
     onBackground = Pink2,
-    onSurface = Pink2
+    onSurface = Pink2,
+    onSecondary = Black
 
     /* Other default colors to override
     background = Color(0xFFFFFBFE),

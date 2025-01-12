@@ -281,16 +281,19 @@ fun PropertiesMenuDialog(pathOption: PathProperties, onDismiss: () -> Unit) {
 
         Card(
             shape = RoundedCornerShape(8.dp),
-            modifier = Modifier.padding(vertical = 8.dp)
+            modifier = Modifier
+                .padding(vertical = 8.dp)
         ) {
-            Column(modifier = Modifier.padding(8.dp)) {
+            Column(modifier = Modifier
+                .background(Color.Black)
+            ) {
 
                 Text(
                     text = stringResource(id = R.string.properties),
-                    color = Color.White,
+                    color = colorScheme.onSecondary,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(start = 12.dp, top = 12.dp)
+                    modifier = Modifier.padding(start = 24.dp, top = 24.dp)
                 )
 
                 Canvas(
@@ -317,8 +320,8 @@ fun PropertiesMenuDialog(pathOption: PathProperties, onDismiss: () -> Unit) {
                 Text(
                     text = stringResource(id = R.string.stroke) + " " + stringResource(id = R.string.width) +  " ${strokeWidth.toInt()}",
                     fontSize = 16.sp,
-                    color = Color.White,
-                    modifier = Modifier.padding(horizontal = 12.dp)
+                    color = colorScheme.onSecondary,
+                    modifier = Modifier.padding(horizontal = 24.dp)
                 )
 
                 Slider(
@@ -328,7 +331,8 @@ fun PropertiesMenuDialog(pathOption: PathProperties, onDismiss: () -> Unit) {
                         pathOption.strokeWidth = strokeWidth
                     },
                     valueRange = 1f..100f,
-                    onValueChangeFinished = {}
+                    onValueChangeFinished = {},
+                    modifier = Modifier.padding(horizontal = 16.dp)
                 )
 
 
@@ -411,7 +415,7 @@ fun ColorSelectionDialog(
 
                 Text(
                     text = stringResource(id = R.string.color),
-                    color = Purple40,
+                    color = colorScheme.primary,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(top = 12.dp)
@@ -566,8 +570,9 @@ fun ExposedSelectionMenu(
 
     ExposedDropdownMenuBox(
         modifier = Modifier
+            .background(Color.Black)
             .fillMaxWidth()
-            .padding(vertical = 4.dp),
+            .padding(vertical = 4.dp, horizontal = 8.dp),
         expanded = expanded,
         onExpandedChange = {
             expanded = !expanded
@@ -585,14 +590,15 @@ fun ExposedSelectionMenu(
                 )
             },
             colors = ExposedDropdownMenuDefaults.textFieldColors(
-                //backgroundColor = Color.White,
+                focusedContainerColor = Color.Transparent,
+                unfocusedContainerColor = Color.Transparent,
                 focusedIndicatorColor = Color.Transparent,
                 unfocusedIndicatorColor = Color.Transparent,
                 disabledIndicatorColor = Color.Transparent,
             )
         )
         ExposedDropdownMenu(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.background(Color.Black).fillMaxWidth(),
             expanded = expanded,
             onDismissRequest = {
                 expanded = false
@@ -601,7 +607,7 @@ fun ExposedSelectionMenu(
         ) {
             options.forEachIndexed { index: Int, selectionOption: String ->
                 DropdownMenuItem(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.background(Color.Black).fillMaxWidth(),
                     onClick = {
 
                         selectedOptionText = selectionOption

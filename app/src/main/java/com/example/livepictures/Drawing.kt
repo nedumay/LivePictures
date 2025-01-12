@@ -1,9 +1,16 @@
 package com.example.livepictures
 
+import android.content.ContentValues
+import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Paint
 import android.graphics.PorterDuff
 import android.graphics.PorterDuffXfermode
+import android.net.Uri
+import android.os.Build
+import android.os.Environment
+import android.provider.MediaStore
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -45,6 +52,7 @@ import com.example.livepictures.mode.DrawMode
 import com.example.livepictures.mode.MotionEvent
 import com.example.livepictures.mode.dragMotionEvent
 import com.example.livepictures.model.PathProperties
+import java.io.IOException
 
 
 @RequiresApi(35)
@@ -105,11 +113,11 @@ fun Drawing(modifier: Modifier) {
             .weight(1f)
             .clip(shape = RoundedCornerShape(20.dp))
             .background(Color.White)
-            .paint(
+            /*.paint(
                 painter = painterResource(id = R.drawable.background),
                 contentScale = ContentScale.FillBounds,
                 alpha = 0.5f
-            )
+            )*/
             .dragMotionEvent(
                 onDragStart = { pointerInputChange ->
                     motionEvent = MotionEvent.Down
@@ -210,8 +218,6 @@ fun Drawing(modifier: Modifier) {
                 /*
                 isPlaying = false
                 uiVisibility = true
-                Toast.makeText(context, "Stop: ${isPlaying}", Toast.LENGTH_SHORT).show()
-
                  */
             },
             onPlay = {
@@ -219,7 +225,6 @@ fun Drawing(modifier: Modifier) {
                 if (frames.isNotEmpty() && !isPlaying) {
                     isPlaying = true
                     uiVisibility = false
-                    Toast.makeText(context, "Play: ${isPlaying}", Toast.LENGTH_SHORT).show()
                 }*/
             },
             uiVisibility = uiVisibility
@@ -444,3 +449,66 @@ fun generateCurrentBitmap(
     // Сохраняем результат в currentBitmap
     return bitmap
 }
+
+/** Функция сохранения изображений**/
+fun saveBitmapToFile(context: Context, bitmap: Bitmap, fileName: String): Uri? {
+    val imageUri: Uri
+    val contentValues = ContentValues().apply {
+        put(MediaStore.MediaColumns.DISPLAY_NAME, fileName)
+        put(MediaStore.MediaColumns.MIME_TYPE, "image/png")
+
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q){
+            put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/MyDrawings")
+            put(MediaStore.MediaColumns.IS_PENDING, 1)
+        }
+    }
+
+    val resolver = context.contentResolver
+    imageUri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues) ?: return null
+    imageUri.let { uri ->
+        try {
+            val outputStream = resolver.openOutputStream(uri)
+            if (outputStream != null) {
+                bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
+            }
+            outputStream?.close()
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                contentValues.clear()
+                contentValues.put(MediaStore.MediaColumns.IS_PENDING, 0)
+                resolver.update(uri, contentValues, null, null)
+            }
+            Toast.makeText(context, "Image saved successfully", Toast.LENGTH_SHORT).show()
+            return uri
+
+
+        } catch (e: IOException) {
+            e.printStackTrace()
+            Toast.makeText(context, "Failed to save image", Toast.LENGTH_SHORT).show()
+            return null
+        }
+    }
+}
+/*
+fun MyCanvas() {
+    val context = LocalContext.current
+    val density = LocalDensity.current
+    var currentBitmap by remember { mutableStateOf<Bitmap?>(null) }
+    val paths = remember { mutableStateListOf<Pair<Path, PathProperties>>() }
+    val canvasWidth = 500
+    val canvasHeight = 500
+
+    val saveImage = {
+        currentBitmap?.let { bitmap ->
+            val fileName = "drawing_${SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())}.png"
+            saveBitmapToFile(context, bitmap, fileName)
+        }
+    }
+
+    // Пример использования:
+    // 1. Создайте currentBitmap
+    currentBitmap = generateCurrentBitmap(paths, canvasWidth, canvasHeight, density)
+    // 2. Вызовите saveImage
+    Button(onClick = saveImage) {
+        Text("Save Image")
+    }
+}*/

@@ -4,6 +4,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -73,7 +74,7 @@ fun ColorSlider(
         Spacer(modifier = Modifier.width(8.dp))
         Text(
             text = rgb.toInt().toString(),
-            color = Color.LightGray,
+            color = colorScheme.primary,
             fontSize = 12.sp,
             modifier = Modifier.width(30.dp)
         )
