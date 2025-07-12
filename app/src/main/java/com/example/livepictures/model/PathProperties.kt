@@ -10,7 +10,10 @@ class PathProperties(
     var alpha: Float = 1f,
     var strokeCap: StrokeCap = StrokeCap.Round,
     var strokeJoin: StrokeJoin = StrokeJoin.Round,
-    var eraseMode: Boolean = false
+    var eraseMode: Boolean = false,
+    var brushType: BrushType = BrushType.PENCIL,
+    var brushTexture: BrushTexture = BrushTexture.SOLID,
+    var pressureSensitive: Boolean = false
 ) {
 
     fun copy(
@@ -19,9 +22,13 @@ class PathProperties(
         alpha: Float = this.alpha,
         strokeCap: StrokeCap = this.strokeCap,
         strokeJoin: StrokeJoin = this.strokeJoin,
-        eraseMode: Boolean = this.eraseMode
+        eraseMode: Boolean = this.eraseMode,
+        brushType: BrushType = this.brushType,
+        brushTexture: BrushTexture = this.brushTexture,
+        pressureSensitive: Boolean = this.pressureSensitive
     ) = PathProperties(
-        strokeWidth, color, alpha, strokeCap, strokeJoin, eraseMode
+        strokeWidth, color, alpha, strokeCap, strokeJoin, eraseMode, 
+        brushType, brushTexture, pressureSensitive
     )
 
     fun copyFrom(properties: PathProperties) {
@@ -30,5 +37,17 @@ class PathProperties(
         this.strokeCap = properties.strokeCap
         this.strokeJoin = properties.strokeJoin
         this.eraseMode = properties.eraseMode
+        this.brushType = properties.brushType
+        this.brushTexture = properties.brushTexture
+        this.pressureSensitive = properties.pressureSensitive
+    }
+    
+    fun applyBrushType(brushType: BrushType) {
+        this.brushType = brushType
+        this.strokeWidth = brushType.strokeWidth
+        this.strokeCap = brushType.strokeCap
+        this.alpha = brushType.alpha
+        this.brushTexture = brushType.texture
+        this.pressureSensitive = brushType.pressureSensitive
     }
 }

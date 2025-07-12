@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -35,6 +36,7 @@ import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.asAndroidPath
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.nativeCanvas
@@ -43,6 +45,7 @@ import androidx.compose.ui.input.pointer.consumeDownChange
 import androidx.compose.ui.input.pointer.consumePositionChange
 import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -52,6 +55,10 @@ import com.example.livepictures.mode.DrawMode
 import com.example.livepictures.mode.MotionEvent
 import com.example.livepictures.mode.dragMotionEvent
 import com.example.livepictures.model.PathProperties
+import com.example.livepictures.model.BrushType
+import com.example.livepictures.model.BrushTexture
+import kotlinx.coroutines.delay
+import kotlin.math.pow
 import java.io.IOException
 
 
@@ -88,6 +95,8 @@ fun Drawing(modifier: Modifier) {
     var isPlaying by remember { mutableStateOf(false) }
     // Текущий битмап
     var currentBitmap by remember { mutableStateOf<Bitmap?>(null) }
+    
+
 
     var canvasWidth: Int = 0
 
@@ -180,64 +189,79 @@ fun Drawing(modifier: Modifier) {
                 motionEvent = MotionEvent.Idle
             },
             addFrame = {
-                /*
-                currentBitmap?.let { bitmap ->
+                // Создаем bitmap из текущих путей
+                if (canvasWidth > 0 && canvasHeight > 0) {
+                    val bitmap = generateCurrentBitmap(paths, canvasWidth, canvasHeight)
                     frames.add(bitmap)
                     currentFrameIndex = frames.size - 1
-                    currentBitmap = null
-
+                    
                     fadeEffectEnabled = true
-                    Toast.makeText(context, "AddFrame: ${currentFrameIndex}", Toast.LENGTH_SHORT)
+                    Toast.makeText(context, "Frame added: ${currentFrameIndex + 1}", Toast.LENGTH_SHORT)
                         .show()
-
-                    if (paths.isNotEmpty()) {
-                        val lastItem = paths.last()
-                        val lastPath = lastItem.first
-                        val lastPathProperty = lastItem.second
-                        paths.remove(lastItem)
-                        pathsUndone.add(Pair(lastPath, lastPathProperty))
-                    }
-                }*/
+                    
+                    // Очищаем пути после добавления фрейма
+                    paths.clear()
+                    pathsUndone.clear()
+                } else {
+                    Toast.makeText(context, "Canvas not ready", Toast.LENGTH_SHORT).show()
+                }
             },
             deleteFrame = {
-                /*
-                if (frames.isNotEmpty() && currentFrameIndex >= 0) {
-                    frames.removeAt(currentFrameIndex)
-                    currentFrameIndex = if (currentFrameIndex > 0) currentFrameIndex - 1 else 0
-                    currentBitmap = frames.getOrNull(currentFrameIndex)
-                    Toast.makeText(
-                        context,
-                        "DeleteFrame: ${currentFrameIndex} CurrentBitmap: ${currentBitmap}",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                if (isPlaying || currentBitmap != null) {
+                    // Режим просмотра - удаляем фрейм
+                    if (frames.isNotEmpty()) {
+                        frames.removeAt(currentFrameIndex)
+                        currentFrameIndex = if (frames.isNotEmpty()) {
+                            if (currentFrameIndex >= frames.size) frames.size - 1 else currentFrameIndex
+                        } else {
+                            -1
+                        }
+                        currentBitmap = frames.getOrNull(currentFrameIndex)
+                        Toast.makeText(
+                            context,
+                            "Frame deleted. Total frames: ${frames.size}",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    } else {
+                        Toast.makeText(context, "No frames to delete", Toast.LENGTH_SHORT).show()
+                    }
                 } else {
-                    Toast.makeText(context, "No Frame to Delete", Toast.LENGTH_SHORT).show()
-                }*/
+                    // Режим рисования - очищаем полотно
+                    paths.clear()
+                    pathsUndone.clear()
+                    currentBitmap = null
+                    motionEvent = MotionEvent.Idle
+                    Toast.makeText(context, "Полотно очищено", Toast.LENGTH_SHORT).show()
+                }
             },
             onStop = {
-                /*
                 isPlaying = false
                 uiVisibility = true
-                 */
+                // Показываем последний фрейм при остановке
+                currentBitmap = frames.getOrNull(currentFrameIndex)
             },
             onPlay = {
-                /*
                 if (frames.isNotEmpty() && !isPlaying) {
                     isPlaying = true
                     uiVisibility = false
-                }*/
+                    currentFrameIndex = 0 // Начинаем с первого фрейма
+                } else if (frames.isEmpty()) {
+                    Toast.makeText(context, "No frames to play", Toast.LENGTH_SHORT).show()
+                }
             },
-            uiVisibility = uiVisibility
+            uiVisibility = uiVisibility,
+            frameCount = frames.size,
+            currentFrameIndex = currentFrameIndex
         )
         Canvas(
             modifier = drawModifier
-            /*
+
             .onSizeChanged {
                 canvasWidth = it.width
                 canvasHeight = it.height
-            }*/
+            }
         ) {
-            /*
+
             if (fadeEffectEnabled) {
                 drawRect(
                     color = Color.White.copy(alpha = 0.1f), // Настройка прозрачности затухания
@@ -245,7 +269,7 @@ fun Drawing(modifier: Modifier) {
                 )
                 // Сбрасываем эффект после отрисовки
                 fadeEffectEnabled = false
-            }*/
+            }
             when (motionEvent) {
                 MotionEvent.Down -> {
                     if (drawMode != DrawMode.Touch) {
@@ -263,7 +287,6 @@ fun Drawing(modifier: Modifier) {
                             previousPosition.y,
                             (previousPosition.x + currentPosition.x) / 2,
                             (previousPosition.y + currentPosition.y) / 2
-
                         )
                     }
                     previousPosition = currentPosition
@@ -272,7 +295,6 @@ fun Drawing(modifier: Modifier) {
                 MotionEvent.Up -> {
                     if (drawMode != DrawMode.Touch) {
                         currentPath.lineTo(currentPosition.x, currentPosition.y)
-
                         paths.add(Pair(currentPath, currentPathProperty))
 
                         currentPath = Path()
@@ -302,81 +324,37 @@ fun Drawing(modifier: Modifier) {
 
                 val checkPoint = saveLayer(null, null)
 
-                paths.forEach {
-
-                    val path = it.first
-                    val property = it.second
-
-                    if (!property.eraseMode) {
-                        drawPath(
-                            color = property.color,
-                            path = path,
-                            style = Stroke(
-                                width = property.strokeWidth,
-                                cap = property.strokeCap,
-                                join = property.strokeJoin
-                            )
-                        )
-                    } else {
-                        // Source
-                        drawPath(
-                            color = Color.Transparent,
-                            path = path,
-                            style = Stroke(
-                                width = currentPathProperty.strokeWidth,
-                                cap = currentPathProperty.strokeCap,
-                                join = currentPathProperty.strokeJoin
-                            ),
-                            blendMode = BlendMode.Clear
-                        )
-                    }
+                paths.forEach { (path, property) ->
+                    drawPathWithBrushEffect(path, property)
                 }
 
                 if (motionEvent != MotionEvent.Idle) {
-
-                    if (!currentPathProperty.eraseMode) {
-                        drawPath(
-                            color = currentPathProperty.color,
-                            path = currentPath,
-                            style = Stroke(
-                                width = currentPathProperty.strokeWidth,
-                                cap = currentPathProperty.strokeCap,
-                                join = currentPathProperty.strokeJoin
-                            )
-                        )
-                    } else {
-                        drawPath(
-                            color = Color.Transparent,
-                            path = currentPath,
-                            style = Stroke(
-                                width = currentPathProperty.strokeWidth,
-                                cap = currentPathProperty.strokeCap,
-                                join = currentPathProperty.strokeJoin
-                            ),
-                            blendMode = BlendMode.Clear
-                        )
-                    }
+                    drawPathWithBrushEffect(currentPath, currentPathProperty)
                 }
                 restoreToCount(checkPoint)
             }
-            /*
+
             currentBitmap?.let {
                 drawImage(it.asImageBitmap())
-            }*/
+            }
 
         }
-        /*
+
         LaunchedEffect(isPlaying) {
-            if (isPlaying) {
-                while (isPlaying && frames.isNotEmpty()) {
+            if (isPlaying && frames.isNotEmpty()) {
+                while (isPlaying && currentFrameIndex < frames.size) {
                     currentBitmap = frames[currentFrameIndex]
-                    currentFrameIndex = (currentFrameIndex + 1) % frames.size
-                    delay(1000)
+                    delay(1000) // 1 секунда на фрейм
+                    currentFrameIndex++
                 }
-                isPlaying = false // Останавливаем после завершения анимации
-                currentBitmap = frames.getOrNull(currentFrameIndex) // Возвращаем последний кадр
+                // Анимация завершена - остаемся в режиме просмотра
+                isPlaying = false
+                uiVisibility = true
+                currentFrameIndex = if (frames.isNotEmpty()) frames.size - 1 else -1
+                currentBitmap = frames.getOrNull(currentFrameIndex) // Показываем последний фрейм
+                motionEvent = MotionEvent.Idle
             }
-        }*/
+        }
         // Нижнее меню
         DrawingPropertiesMenuBottom(
             modifier = Modifier
@@ -394,11 +372,13 @@ fun Drawing(modifier: Modifier) {
                 motionEvent = MotionEvent.Idle
                 drawMode = it
                 currentPathProperty.eraseMode = (drawMode == DrawMode.Erase)
-                /*
-                Toast.makeText(
-                    context, "pathProperty: ${currentPathProperty.hashCode()}, " +
-                            "Erase Mode: ${currentPathProperty.eraseMode}", Toast.LENGTH_SHORT
-                ).show()*/
+                
+                // При переключении на режим Brush применяем случайную кисть
+                if (drawMode == DrawMode.Brush) {
+                    val brushTypes = com.example.livepictures.model.BrushType.values()
+                    val randomBrush = brushTypes.random()
+                    currentPathProperty.applyBrushType(randomBrush)
+                }
             },
             uiVisibility = uiVisibility
         )
@@ -417,6 +397,91 @@ private fun DrawScope.drawText(text: String, x: Float, y: Float, paint: Paint) {
     }
 }
 
+private fun DrawScope.drawPathWithBrushEffect(path: Path, property: PathProperties) {
+    if (property.eraseMode) {
+        // Режим стирания
+        drawPath(
+            color = Color.Transparent,
+            path = path,
+            style = Stroke(
+                width = property.strokeWidth,
+                cap = property.strokeCap,
+                join = property.strokeJoin
+            ),
+            blendMode = BlendMode.Clear
+        )
+        return
+    }
+
+    // Безопасная функция для создания цвета с проверкой alpha
+    fun safeColor(alpha: Float): Color {
+        val safeAlpha = alpha.coerceIn(0f, 1f)
+        return property.color.copy(alpha = safeAlpha)
+    }
+
+    when (property.brushTexture) {
+        BrushTexture.SOLID -> {
+            // Обычная сплошная линия
+            drawPath(
+                color = safeColor(property.alpha),
+                path = path,
+                style = Stroke(
+                    width = property.strokeWidth,
+                    cap = property.strokeCap,
+                    join = property.strokeJoin
+                )
+            )
+        }
+        BrushTexture.MARKER -> {
+            // Маркер с эффектом растекания - более заметный эффект
+            drawPath(
+                color = safeColor(property.alpha * 0.4f),
+                path = path,
+                style = Stroke(
+                    width = property.strokeWidth + 8,
+                    cap = property.strokeCap,
+                    join = property.strokeJoin
+                )
+            )
+            drawPath(
+                color = safeColor(property.alpha * 0.7f),
+                path = path,
+                style = Stroke(
+                    width = property.strokeWidth + 4,
+                    cap = property.strokeCap,
+                    join = property.strokeJoin
+                )
+            )
+            drawPath(
+                color = safeColor(property.alpha),
+                path = path,
+                style = Stroke(
+                    width = property.strokeWidth,
+                    cap = property.strokeCap,
+                    join = property.strokeJoin
+                )
+            )
+        }
+        BrushTexture.BRUSH -> {
+            // Текстурированная кисть - более выраженная текстура
+            for (i in 0..4) {
+                val alphaMultiplier = (1f - i * 0.2f).coerceIn(0.1f, 1f)
+                val widthMultiplier = (1f - i * 0.15f).coerceIn(0.3f, 1f)
+                
+                drawPath(
+                    color = safeColor(property.alpha * alphaMultiplier),
+                    path = path,
+                    style = Stroke(
+                        width = property.strokeWidth * widthMultiplier,
+                        cap = property.strokeCap,
+                        join = property.strokeJoin
+                    )
+                )
+            }
+        }
+    }
+}
+
 // Функция для захвата текущего Canvas в Bitmap
 fun generateCurrentBitmap(
     paths: List<Pair<Path, PathProperties>>,
@@ -426,27 +491,38 @@ fun generateCurrentBitmap(
     // Создаем Bitmap на основе размеров Canvas
     val bitmap = Bitmap.createBitmap(canvasWidth, canvasHeight, Bitmap.Config.ARGB_8888)
     val canvas = android.graphics.Canvas(bitmap)
+    
+    // Заполняем белым фоном
+    canvas.drawColor(android.graphics.Color.WHITE)
 
     // Рендерим все пути на созданном Canvas
     paths.forEach { (path, property) ->
-        val androidPath = android.graphics.Path()
-        path.asAndroidPath().apply {
-            androidPath.addPath(this)
-        }
         val paint = Paint().apply {
             if (property.eraseMode) {
                 xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR)
+                color = android.graphics.Color.TRANSPARENT
             } else {
-                xfermode = PorterDuffXfermode(PorterDuff.Mode.ADD)
                 color = property.color.toArgb()
                 strokeWidth = property.strokeWidth
                 style = Paint.Style.STROKE
                 isAntiAlias = true
+                strokeCap = when (property.strokeCap) {
+                    androidx.compose.ui.graphics.StrokeCap.Butt -> Paint.Cap.BUTT
+                    androidx.compose.ui.graphics.StrokeCap.Round -> Paint.Cap.ROUND
+                    androidx.compose.ui.graphics.StrokeCap.Square -> Paint.Cap.SQUARE
+                    else -> Paint.Cap.BUTT
+                }
+                strokeJoin = when (property.strokeJoin) {
+                    androidx.compose.ui.graphics.StrokeJoin.Bevel -> Paint.Join.BEVEL
+                    androidx.compose.ui.graphics.StrokeJoin.Miter -> Paint.Join.MITER
+                    androidx.compose.ui.graphics.StrokeJoin.Round -> Paint.Join.ROUND
+                    else -> Paint.Join.MITER
+                }
             }
         }
         canvas.drawPath(path.asAndroidPath(), paint)
     }
-    // Сохраняем результат в currentBitmap
+    
     return bitmap
 }
 

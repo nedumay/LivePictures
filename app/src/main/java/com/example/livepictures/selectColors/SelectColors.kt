@@ -20,17 +20,19 @@ import androidx.compose.ui.unit.sp
 import com.example.livepictures.ui.theme.gradientColors
 
 @Composable
-fun ColorWheel(modifier: Modifier = Modifier) {
+fun ColorWheel(
+    modifier: Modifier = Modifier,
+    currentColor: Color = Color.White,
+    onColorSelected: ((Color) -> Unit)? = null
+) {
 
     Canvas(modifier = modifier) {
         val canvasWidth = size.width
         val canvasHeight = size.height
 
-        require(canvasWidth == canvasHeight,
-            lazyMessage = {
-                print("Canvas dimensions should be equal to each other")
-            }
-        )
+        require(canvasWidth == canvasHeight) {
+            "Canvas dimensions should be equal to each other"
+        }
         val cX = canvasWidth / 2
         val cY = canvasHeight / 2
         val canvasRadius = canvasWidth.coerceAtMost(canvasHeight) / 2f
@@ -47,6 +49,9 @@ fun ColorWheel(modifier: Modifier = Modifier) {
                 width = strokeWidth
             )
         )
+        
+        // Если есть callback для выбора цвета, можно добавить интерактивность
+        // Пока что просто отображаем цветовое колесо
     }
 }
 

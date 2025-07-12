@@ -3,6 +3,8 @@ package com.example.livepictures.menu
 import android.content.res.Resources.Theme
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -11,6 +13,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -42,6 +45,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalDensity
@@ -56,10 +60,14 @@ import com.example.livepictures.R
 import com.example.livepictures.mode.DrawMode
 import com.example.livepictures.model.PathProperties
 import com.example.livepictures.selectColors.ColorSlider
-import com.example.livepictures.selectColors.ColorWheel
 import com.example.livepictures.ui.theme.Black
+import com.example.livepictures.ui.theme.Gray
 import com.example.livepictures.ui.theme.Purple40
+import com.example.livepictures.ui.theme.White
 import kotlin.math.roundToInt
+import com.example.livepictures.model.BrushType
+import com.example.livepictures.menu.BrushSelectionDialog
+import com.example.livepictures.selectColors.ColorWheel
 
 @Composable
 fun DrawingPropertiesMenuApp(
@@ -72,8 +80,9 @@ fun DrawingPropertiesMenuApp(
     addFrame: () -> Unit,
     onStop: () -> Unit,
     onPlay: () -> Unit,
-    uiVisibility: Boolean
-
+    uiVisibility: Boolean,
+    frameCount: Int = 0,
+    currentFrameIndex: Int = -1
 ) {
     Row(
         modifier = modifier
@@ -101,19 +110,20 @@ fun DrawingPropertiesMenuApp(
                     )
                 }
             }
-        } /*
+        }
         if (uiVisibility) {
             Row(
                 modifier = Modifier
                     .weight(2f),
-                horizontalArrangement = Arrangement.Center
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(onClick = {
                     deleteFrame()
                 }) {
                     Icon(
                         imageVector = ImageVector.vectorResource(id = R.drawable.trash),
-                        contentDescription = " ",
+                        contentDescription = "Delete Frame",
                         tint = Color.White
                     )
                 }
@@ -122,17 +132,17 @@ fun DrawingPropertiesMenuApp(
                 }) {
                     Icon(
                         imageVector = ImageVector.vectorResource(id = R.drawable.file_plus),
-                        contentDescription = " ",
+                        contentDescription = "Add Frame",
                         tint = Color.White
                     )
                 }
-                IconButton(onClick = { }) {
-                    Icon(
-                        imageVector = ImageVector.vectorResource(id = R.drawable.layers),
-                        contentDescription = " ",
-                        tint = Color.White
-                    )
-                }
+                // Показываем количество фреймов
+                Text(
+                    text = "Фрейм: $frameCount",
+                    color = Color.White,
+                    fontSize = 12.sp,
+                    modifier = Modifier.padding(horizontal = 8.dp)
+                )
             }
         }
         Row(modifier = Modifier.weight(1f)) {
@@ -154,7 +164,7 @@ fun DrawingPropertiesMenuApp(
                     tint = if (uiVisibility) White else Color.Gray
                 )
             }
-        }*/
+        }
     }
 
 }
@@ -172,6 +182,7 @@ fun DrawingPropertiesMenuBottom(
 
     var showColorDialog by remember { mutableStateOf(false) }
     var showPropertiesDialog by remember { mutableStateOf(false) }
+    var showBrushDialog by remember { mutableStateOf(false) }
     var currentDrawMode = drawMode
 
     Row(
@@ -196,20 +207,7 @@ fun DrawingPropertiesMenuBottom(
                     tint = if (currentDrawMode == DrawMode.Draw) colorScheme.primary else Color.White
                 )
             }
-            IconButton(onClick = {
-                currentDrawMode = if (currentDrawMode == DrawMode.Brush) {
-                    DrawMode.Draw
-                } else {
-                    DrawMode.Brush
-                }
-                onDrawModeChanged(currentDrawMode)
-            }) {
-                Icon(
-                    imageVector = ImageVector.vectorResource(id = R.drawable.brush),
-                    contentDescription = " ",
-                    tint = if (currentDrawMode == DrawMode.Brush) colorScheme.primary else Color.White
-                )
-            }
+
             IconButton(onClick = {
                 currentDrawMode = if (currentDrawMode == DrawMode.Erase) {
                     DrawMode.Draw
@@ -225,13 +223,12 @@ fun DrawingPropertiesMenuBottom(
                 )
             }
             IconButton(onClick = {
-
+                showBrushDialog = !showBrushDialog
             }) {
                 Icon(
                     imageVector = ImageVector.vectorResource(id = R.drawable.instruments),
-                    contentDescription = " ",
-                    tint = Color.Gray
-                    //tint = if (selectedIcon == 3) com.example.livepictures.ui.theme.Green else Color.White //Исправить цвета
+                    contentDescription = "Выбрать кисть",
+                    tint = Color.White
                 )
             }
             IconButton(onClick = { showColorDialog = !showColorDialog }) {
@@ -268,6 +265,18 @@ fun DrawingPropertiesMenuBottom(
         }
     }
 
+    if (showBrushDialog) {
+        BrushSelectionDialog(
+            currentBrushType = properties.brushType,
+            onDismiss = { showBrushDialog = !showBrushDialog },
+            onNegativeClick = { showBrushDialog = !showBrushDialog },
+            onPositiveClick = { brushType: BrushType ->
+                showBrushDialog = !showBrushDialog
+                properties.applyBrushType(brushType)
+                onPathPropertiesChange(properties)
+            }
+        )
+    }
 }
 
 @Composable
@@ -401,7 +410,6 @@ fun ColorSelectionDialog(
     )
 
     Dialog(onDismissRequest = onDismiss) {
-
         BoxWithConstraints(
             Modifier
                 .shadow(1.dp, RoundedCornerShape(8.dp))
@@ -448,11 +456,11 @@ fun ColorSelectionDialog(
                     )
                 }
 
-                ColorWheel(
-                    modifier = Modifier
-                        .width(widthInDp * .8f)
-                        .aspectRatio(1f)
-                )
+//                ColorWheel(
+//                    modifier = Modifier
+//                        .width(widthInDp * .8f)
+//                        .aspectRatio(1f)
+//                )
 
                 Spacer(modifier = Modifier.height(16.dp))
 
@@ -510,16 +518,13 @@ fun ColorSelectionDialog(
                 Spacer(modifier = Modifier.height(24.dp))
 
                 // Buttons
-
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(60.dp)
                         .background(Color(0xffF3E5F5)),
                     verticalAlignment = Alignment.CenterVertically
-
                 ) {
-
                     TextButton(
                         onClick = onNegativeClick,
                         modifier = Modifier
@@ -635,7 +640,7 @@ fun PreviewDrawingPropertiesMenuApp() {
         addFrame = {},
         onStop = {},
         onPlay = {},
-        uiVisibility = true
+        uiVisibility = true,
     )
 }
 
